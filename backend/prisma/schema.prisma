@@ -1,0 +1,55 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CREATOR)
+  
+  campaigns Campaign[] 
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+model Campaign {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  prizePool   Int      // Stored in dollars/rupees
+  deadline    DateTime
+  status      Status   @default(ACTIVE)
+  
+  brandId     String   @db.ObjectId
+  brand       User     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([status])
+  @@index([deadline])
+}
+
+enum Role {
+  BRAND
+  CREATOR
+  ADMIN
+}
+
+enum Status {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
