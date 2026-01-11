@@ -15,7 +15,7 @@ const loginLimiter = rateLimit({
 
 const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, 
-  max: 3,
+  max: process.env.NODE_ENV === 'production' ? 3 : 20, // 20 for dev, 3 for production
   message: 'Too many accounts created, please try again after an hour',
   standardHeaders: true,
   legacyHeaders: false,
