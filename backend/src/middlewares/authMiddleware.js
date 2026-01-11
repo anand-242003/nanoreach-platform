@@ -23,7 +23,11 @@ export const authenticate = (req, res, next) => {
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: "Invalid token" });
     }
-    console.error("Auth Middleware Error:", error);
+    if (process.env.NODE_ENV === 'production') {
+        console.error("Auth Middleware Error:", error.message);
+    } else {
+        console.error("Auth Middleware Error:", error);
+    }
     return res.status(500).json({ message: "Server error" });
   }
 };
