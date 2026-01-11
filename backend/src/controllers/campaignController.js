@@ -1,11 +1,12 @@
 import prisma from "../config/db.js";
+import xss from "xss";
 
 export const createCampaign = async (req, res) => {
   try {
     let { title, description, prizePool, deadline } = req.body;
 
-    title = title?.trim();
-    description = description?.trim();
+    title = xss(title?.trim());
+    description = xss(description?.trim());
 
     if (!title || !description || !prizePool || !deadline) {
       return res.status(400).json({ message: "All fields are required: title, description, prizePool, deadline" });
@@ -63,20 +64,23 @@ export const createCampaign = async (req, res) => {
       campaign,
     });
   } catch (error) {
-    console.error("Create Campaign Error:", error);
+    if (process.env.NODE_ENV === 'production') {
+        console.error("Create Campaign Error:", error.message);
+    } else {
+        console.error("Create Campaign Error:", error);
+    }
     res.status(500).json({ message: "Server error while creating campaign" });
   }
 };
 
 export const getAllCampaigns = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    
+    page = Math.max(1, Math.min(page, 1000));  
+    limit = Math.max(1, Math.min(limit, 100)); 
     const skip = (page - 1) * limit;
-
-    if (limit > 100) {
-      return res.status(400).json({ message: "Limit cannot exceed 100" });
-    }
 
     const campaigns = await prisma.campaign.findMany({
       where: {
@@ -104,7 +108,6 @@ export const getAllCampaigns = async (req, res) => {
       },
     });
 
-    // Get total count for pagination
     const total = await prisma.campaign.count({
       where: {
         status: "ACTIVE",
@@ -121,7 +124,11 @@ export const getAllCampaigns = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get Campaigns Error:", error);
+    if (process.env.NODE_ENV === 'production') {
+        console.error("Get Campaigns Error:", error.message);
+    } else {
+        console.error("Get Campaigns Error:", error);
+    }
     res.status(500).json({ message: "Server error while fetching campaigns" });
   }
 };
