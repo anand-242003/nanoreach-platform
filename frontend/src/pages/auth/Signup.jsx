@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { signupUser, clearError } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, Mail, Lock, Loader2, Building2, Sparkles } from 'lucide-react';
@@ -13,10 +14,30 @@ const Signup = () => {
     confirmPassword: '',
     role: 'CREATOR',
   });
-  const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  
+  const dispatch = useDispatch();
+  const { user, loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Signup Failed',
+        description: error,
+        variant: 'destructive',
+      });
+      dispatch(clearError());
+    }
+  }, [error, toast, dispatch]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,7 +48,7 @@ const Signup = () => {
 
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: 'Error',
+        title: 'Validation Error',
         description: 'Passwords do not match',
         variant: 'destructive',
       });
@@ -36,30 +57,25 @@ const Signup = () => {
 
     if (formData.password.length < 8) {
       toast({
-        title: 'Error',
+        title: 'Validation Error',
         description: 'Password must be at least 8 characters',
         variant: 'destructive',
       });
       return;
     }
 
-    setLoading(true);
+    const result = await dispatch(signupUser({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+    }));
 
-    try {
-      await signup(formData.name, formData.email, formData.password, formData.role);
+    if (signupUser.fulfilled.match(result)) {
       toast({
         title: 'Welcome to NanoReach!',
         description: 'Account created successfully',
       });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Signup failed',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
     }
   };
 

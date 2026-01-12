@@ -1,24 +1,27 @@
-import { useAuth } from '@/context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '@/store/slices/authSlice';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    try {
-      await logout();
+    const result = await dispatch(logoutUser());
+    
+    if (logoutUser.fulfilled.match(result)) {
       toast({
         title: 'Success',
         description: 'Logged out successfully',
       });
       navigate('/auth/login');
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
         description: 'Logout failed',

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '@/store/slices/authSlice';
+import { useToast } from '@/hooks/use-toast';
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -17,7 +19,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -35,8 +39,15 @@ export default function Layout() {
   ];
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/auth/login');
+    const result = await dispatch(logoutUser());
+    
+    if (logoutUser.fulfilled.match(result)) {
+      toast({
+        title: 'Logged out',
+        description: 'See you soon!',
+      });
+      navigate('/auth/login');
+    }
   };
 
   const SidebarContent = ({ isCollapsed = false }) => (
@@ -46,7 +57,7 @@ export default function Layout() {
           "flex items-center gap-2 font-bold text-xl text-primary transition-all",
           isCollapsed && "justify-center"
         )}>
-          <span className="text-2xl">⚡</span>
+          {/* <span className="text-2xl">⚡</span> */}
           {!isCollapsed && <span>NanoReach</span>}
         </Link>
       </div>

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearError } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
@@ -8,30 +9,50 @@ import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  
+  const dispatch = useDispatch();
+  const { user, loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Login Failed',
+        description: error,
+        variant: 'destructive',
+      });
+      dispatch(clearError());
+    }
+  }, [error, toast, dispatch]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      await login(email, password);
+    if (!email || !password) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const result = await dispatch(loginUser({ email, password }));
+    
+    if (loginUser.fulfilled.match(result)) {
       toast({
         title: 'Welcome back!',
         description: 'Logged in successfully',
       });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Login failed',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -72,7 +93,8 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full border border-neutral-200 rounded-lg pl-12 pr-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 transition-colors"
+                  disabled={loading}
+                  className="w-full border border-neutral-200 rounded-lg pl-12 pr-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -87,7 +109,8 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full border border-neutral-200 rounded-lg pl-12 pr-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 transition-colors"
+                  disabled={loading}
+                  className="w-full border border-neutral-200 rounded-lg pl-12 pr-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
