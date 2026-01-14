@@ -1,6 +1,7 @@
 import SmoothScroll from '@/components/SmoothScroll';
 import Navbar from '@/components/landing/Navbar';
-import HeroSection from '@/components/landing/HeroSection';
+import HeroSectionNew from '@/components/landing/HeroSectionNew';
+import MacbookMockup from '@/components/landing/MacbookMockup';
 import TrustedBy from '@/components/landing/TrustedBy';
 import Features from '@/components/landing/Features';
 import HowItWorks from '@/components/landing/HowItWorks';
@@ -13,7 +14,8 @@ export default function Landing() {
     <SmoothScroll>
       <div className="min-h-screen bg-white">
         <Navbar />
-        <HeroSection />
+        <HeroSectionNew />
+        <MacbookMockup />
         <TrustedBy />
         <Features />
         <HowItWorks />

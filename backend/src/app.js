@@ -43,7 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/campaigns", campaignRoutes); 
 
 app.get('/', (_req, res) => {
-  res.send('NanoReach API is running');
+  res.send('DRK/MTTR API is running');
 });
 
 export default app;

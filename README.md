@@ -1,4 +1,4 @@
-# NanoReach Platform
+# DRK/MTTR Platform
 
 A platform connecting brands with content creators for influencer marketing campaigns.
 
@@ -28,7 +28,7 @@ A platform connecting brands with content creators for influencer marketing camp
 ## Project Structure
 
 ```
-nanoreach-platform/
+drkmttr-platform/
 ├── backend/
 │   ├── prisma/
 │   │   └── schema.prisma          # Database schema
@@ -64,7 +64,7 @@ nanoreach-platform/
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd nanoreach-platform
+cd drkmttr-platform
 ```
 
 2. Install backend dependencies:

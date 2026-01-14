@@ -7,7 +7,9 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid md:grid-cols-5 gap-12 mb-12">
           <div className="md:col-span-2">
-            <Link to="/" className="text-xl font-semibold text-neutral-900 mb-4 block">NanoReach</Link>
+            <Link to="/" className="text-xl font-bold text-neutral-900 mb-4 block tracking-tight">
+              DRK<span className="text-neutral-400">/</span>MTTR
+            </Link>
             <p className="text-sm text-neutral-500 max-w-xs leading-relaxed mb-6">
               The modern marketplace connecting brands with authentic nano-influencers.
             </p>
@@ -49,7 +51,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-neutral-100 text-center">
-          <p className="text-sm text-neutral-400">© 2026 NanoReach. All rights reserved.</p>
+          <p className="text-sm text-neutral-400">© 2026 DRK/MTTR. All rights reserved.</p>
         </div>
       </div>
     </footer>

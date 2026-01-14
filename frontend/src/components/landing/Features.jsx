@@ -23,7 +23,7 @@ const ComparisonChart = () => {
         labels: ['Cost per Engagement', 'Avg. Engagement Rate', 'Campaign Setup Time'],
         datasets: [
           { label: 'Traditional', data: [2.5, 1.2, 14], backgroundColor: '#e5e5e5', borderRadius: 6 },
-          { label: 'NanoReach', data: [0.12, 5.2, 1], backgroundColor: '#171717', borderRadius: 6 },
+          { label: 'DRK/MTTR', data: [0.12, 5.2, 1], backgroundColor: '#171717', borderRadius: 6 },
         ],
       },
       options: {
@@ -153,7 +153,7 @@ export default function Features() {
           <div className="grid grid-cols-3 border-b border-neutral-200">
             <div className="p-6"><p className="text-sm text-neutral-500">Feature</p></div>
             <div className="p-6 text-center border-x border-neutral-200 bg-neutral-50"><p className="text-sm text-neutral-500">Traditional Agencies</p></div>
-            <div className="p-6 text-center bg-neutral-900"><p className="text-sm text-neutral-400">NanoReach</p></div>
+            <div className="p-6 text-center bg-neutral-900"><p className="text-sm text-neutral-400 font-bold tracking-tight">DRK/MTTR</p></div>
           </div>
           
           {comparisonData.map((row, i) => (

@@ -54,11 +54,20 @@ export default function Layout() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex h-16 items-center border-b px-6 justify-between">
         <Link to="/dashboard" className={cn(
-          "flex items-center gap-2 font-bold text-xl text-primary transition-all",
+          "flex items-center gap-2 font-bold text-xl text-primary transition-all tracking-tight",
           isCollapsed && "justify-center"
         )}>
           {/* <span className="text-2xl">⚡</span> */}
-          {!isCollapsed && <span>NanoReach</span>}
+          {!isCollapsed && (
+            <span>
+              DRK<span className="text-muted-foreground">/</span>MTTR
+            </span>
+          )}
+          {isCollapsed && (
+            <span className="text-sm">
+              D<span className="text-muted-foreground">/</span>M
+            </span>
+          )}
         </Link>
       </div>
       
@@ -180,7 +189,9 @@ export default function Layout() {
               <SidebarContent isCollapsed={false} />
             </SheetContent>
           </Sheet>
-          <span className="font-bold">NanoReach</span>
+          <span className="font-bold tracking-tight">
+            DRK<span className="text-muted-foreground">/</span>MTTR
+          </span>
         </header>
 
         {/* Main Page Content Injected Here */}

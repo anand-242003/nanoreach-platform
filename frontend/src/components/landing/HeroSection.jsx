@@ -71,9 +71,9 @@ export default function HeroSection() {
               transition={{ delay: 0.5 }}
               className="flex items-center justify-center gap-8 text-sm text-neutral-500"
             >
-              <span>✓ No credit card required</span>
+              {/* <span>✓ No credit card required</span>
               <span>✓ 14-day free trial</span>
-              <span>✓ Cancel anytime</span>
+              <span>✓ Cancel anytime</span> */}
             </motion.div>
           </div>
         }

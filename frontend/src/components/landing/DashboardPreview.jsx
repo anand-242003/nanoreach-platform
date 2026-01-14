@@ -79,7 +79,9 @@ export default function DashboardPreview() {
     <div className="h-full w-full bg-neutral-50">
       <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-3">
         <div className="flex items-center gap-4">
-          <span className="text-lg font-semibold text-neutral-900">NanoReach</span>
+          <span className="text-lg font-bold text-neutral-900 tracking-tight">
+            DRK<span className="text-neutral-400">/</span>MTTR
+          </span>
           <div className="flex items-center gap-1 rounded-lg bg-neutral-100 px-3 py-1.5">
             <Search className="h-4 w-4 text-neutral-400" />
             <span className="text-sm text-neutral-400">Search...</span>

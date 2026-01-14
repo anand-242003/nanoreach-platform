@@ -25,7 +25,7 @@ export default function CTA() {
             Ready to get started?
           </h2>
           <p className="relative text-neutral-400 text-lg mb-10 max-w-lg mx-auto">
-            Join thousands of brands and creators already using NanoReach to drive real results.
+            Join thousands of brands and creators already using DRK/MTTR to drive real results.
           </p>
           <div className="relative flex flex-col sm:flex-row gap-4 justify-center">
             <Link
