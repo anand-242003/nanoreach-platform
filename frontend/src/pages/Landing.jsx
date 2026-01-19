@@ -1,4 +1,3 @@
-import SmoothScroll from '@/components/SmoothScroll';
 import Navbar from '@/components/landing/Navbar';
 import HeroSectionNew from '@/components/landing/HeroSectionNew';
 import MacbookMockup from '@/components/landing/MacbookMockup';
@@ -11,9 +10,8 @@ import Footer from '@/components/landing/Footer';
 
 export default function Landing() {
   return (
-    <SmoothScroll>
-      <div className="min-h-screen bg-white">
-        <Navbar />
+    <div className="min-h-screen bg-white">
+      <Navbar />
         <HeroSectionNew />
         <MacbookMockup />
         <TrustedBy />
@@ -23,6 +21,5 @@ export default function Landing() {
         <CTA />
         <Footer />
       </div>
-    </SmoothScroll>
   );
 }

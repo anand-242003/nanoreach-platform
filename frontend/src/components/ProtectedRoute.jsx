@@ -8,7 +8,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const dispatch = useDispatch();
   const { user, loading, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Check authentication on mount
   useEffect(() => {
     if (!isAuthenticated && !loading) {
       dispatch(checkAuth());

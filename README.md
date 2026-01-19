@@ -11,10 +11,18 @@ A platform connecting brands with content creators for influencer marketing camp
 - HTTP-only cookies for session management
 
 ### Campaign Management
-- Brands can create campaigns with prize pools and deadlines
+- Brands can create and manage campaigns
+- Set prize pools and deadlines
 - Public campaign listing with pagination
 - Status-based filtering (ACTIVE, DRAFT, COMPLETED)
-- Input validation and sanitization
+- Campaign editing and updates
+
+### Submission System
+- Creators can submit work to campaigns
+- File upload support (images, videos, PDFs up to 100MB)
+- Social media link integration
+- Brands can approve/reject submissions
+- Real-time submission status tracking
 
 ## Tech Stack
 
@@ -23,7 +31,17 @@ A platform connecting brands with content creators for influencer marketing camp
 - **Prisma** ORM with MongoDB
 - **JWT** for authentication
 - **bcrypt** for password hashing
+- **Multer** for file uploads
 - **CORS** enabled for cross-origin requests
+
+### Frontend
+- **React 18** with Vite
+- **Redux Toolkit** for state management
+- **React Router** for navigation
+- **Tailwind CSS** for styling
+- **shadcn/ui** component library
+- **Framer Motion** for animations
+- **Axios** for API requests
 
 ## Project Structure
 
@@ -36,21 +54,32 @@ drkmttr-platform/
 │   │   ├── config/
 │   │   │   └── db.js              # Prisma client
 │   │   ├── controllers/
-│   │   │   ├── authController.js  # Auth logic
-│   │   │   └── campaignController.js
+│   │   │   ├── authController.js
+│   │   │   ├── campaignController.js
+│   │   │   └── submissionController.js
 │   │   ├── middlewares/
 │   │   │   └── authMiddleware.js  # JWT verification
 │   │   ├── routes/
 │   │   │   ├── authRoutes.js
-│   │   │   └── campaignRoutes.js
+│   │   │   ├── campaignRoutes.js
+│   │   │   └── submissionRoutes.js
 │   │   ├── utils/
 │   │   │   ├── hash.js            # Password hashing
 │   │   │   └── generateToken.js   # JWT generation
 │   │   ├── app.js                 # Express app config
 │   │   └── server.js              # Entry point
-│   ├── .env                       # Environment variables (not in git)
+│   ├── uploads/                   # File uploads directory
+│   ├── .env                       # Environment variables
 │   └── package.json
-└── frontend/                      # (Coming soon)
+└── frontend/
+    ├── src/
+    │   ├── components/            # Reusable components
+    │   ├── pages/                 # Page components
+    │   ├── store/                 # Redux store
+    │   ├── lib/                   # Utilities
+    │   └── hooks/                 # Custom hooks
+    ├── public/                    # Static assets
+    └── package.json
 ```
 
 ## Setup Instructions
@@ -73,25 +102,40 @@ cd backend
 npm install
 ```
 
-3. Create `.env` file in backend directory:
+3. Install frontend dependencies:
+```bash
+cd ../frontend
+npm install
+```
+
+4. Create `.env` file in backend directory:
 ```env
 DATABASE_URL='your-mongodb-connection-string'
 JWT_SECRET='your-secret-key'
 PORT=3001
 NODE_ENV=development
+FRONTEND_URL='http://localhost:5173'
 ```
 
-4. Generate Prisma client:
+5. Generate Prisma client:
 ```bash
+cd backend
 npx prisma generate
 ```
 
-5. Start the development server:
+6. Start the backend server:
 ```bash
 npm run dev
 ```
 
-Server will run on `http://localhost:3001`
+7. In a new terminal, start the frontend:
+```bash
+cd frontend
+npm run dev
+```
+
+Backend runs on `http://localhost:3001`
+Frontend runs on `http://localhost:5173`
 
 ## API Endpoints
 
@@ -103,7 +147,17 @@ Server will run on `http://localhost:3001`
 
 ### Campaigns
 - `GET /api/campaigns` - Get all active campaigns (public, paginated)
+- `GET /api/campaigns/my` - Get user's campaigns (BRAND only)
+- `GET /api/campaigns/:id` - Get campaign details
 - `POST /api/campaigns` - Create campaign (BRAND only)
+- `PUT /api/campaigns/:id` - Update campaign (BRAND only)
+- `GET /api/campaigns/:id/submissions` - Get campaign submissions (BRAND only)
+
+### Submissions
+- `POST /api/submissions` - Create submission with file upload (CREATOR only)
+- `GET /api/submissions/my` - Get user's submissions (CREATOR only)
+- `PUT /api/submissions/:id/approve` - Approve submission (BRAND only)
+- `PUT /api/submissions/:id/reject` - Reject submission (BRAND only)
 
 ## Environment Variables
 
@@ -113,6 +167,7 @@ Server will run on `http://localhost:3001`
 | JWT_SECRET | Secret key for JWT signing | your-secret-key |
 | PORT | Server port | 3001 |
 | NODE_ENV | Environment | development/production |
+| FRONTEND_URL | Frontend URL for CORS | http://localhost:5173 |
 
 ## Security Features
 
@@ -127,11 +182,19 @@ Server will run on `http://localhost:3001`
 
 ## Development
 
-### Available Scripts
+### Backend Scripts
 
 ```bash
 npm run dev    # Start development server with nodemon
 npm start      # Start production server
+```
+
+### Frontend Scripts
+
+```bash
+npm run dev    # Start Vite development server
+npm run build  # Build for production
+npm run preview # Preview production build
 ```
 
 ### Database

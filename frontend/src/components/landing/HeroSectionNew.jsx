@@ -91,7 +91,7 @@ export default function HeroSectionNew() {
               className="relative z-10"
             >
               <img 
-                src="/image.png" 
+                src="/hero-illustration.png" 
                 alt="Influencer" 
                 className="w-80 h-96 object-cover rounded-3xl shadow-2xl"
                 onError={(e) => {

@@ -5,7 +5,6 @@ import { signupUser, clearError } from '@/store/slices/authSlice';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, Building2, Sparkles, Check } from 'lucide-react';
-import LoadingCard from '@/components/LoadingCard';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -89,7 +88,15 @@ const Signup = () => {
   };
 
   if (showLoading) {
-    return <LoadingCard />;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/95 backdrop-blur-sm">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-100 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Creating your account...</h2>
+          <p className="text-sm text-neutral-400">This will only take a moment</p>
+        </div>
+      </div>
+    );
   }
 
   return (

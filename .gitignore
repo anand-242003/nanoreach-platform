@@ -12,6 +12,10 @@ frontend/node_modules/
 backend/.env
 frontend/.env
 
+# Uploads (user-generated content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Logs
 logs
 *.log
@@ -40,6 +44,7 @@ Thumbs.db
 dist/
 build/
 *.tsbuildinfo
+frontend/dist/
 
 # Testing
 coverage/
@@ -49,3 +54,13 @@ coverage/
 .cache/
 .temp/
 .tmp/
+FRONTEND_ANALYSIS.md
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+backend/prisma/migrations/
+!backend/prisma/schema.prisma

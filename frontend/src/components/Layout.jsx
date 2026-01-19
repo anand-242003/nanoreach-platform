@@ -9,9 +9,7 @@ import {
   Briefcase, 
   LogOut, 
   Menu, 
-  Trophy,
-  ChevronLeft,
-  ChevronRight
+  Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -27,7 +25,6 @@ export default function Layout() {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Define navigation items based on Role
   const navItems = user?.role === 'BRAND' ? [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/campaigns/create', label: 'Create Campaign', icon: PlusCircle },
@@ -50,29 +47,29 @@ export default function Layout() {
     }
   };
 
-  const SidebarContent = ({ isCollapsed = false }) => (
+  const SidebarContent = ({ isCollapsed = false, onToggleCollapse }) => (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex h-16 items-center border-b px-6 justify-between">
-        <Link to="/dashboard" className={cn(
-          "flex items-center gap-2 font-bold text-xl text-primary transition-all tracking-tight",
-          isCollapsed && "justify-center"
-        )}>
-          {/* <span className="text-2xl">⚡</span> */}
-          {!isCollapsed && (
+      <div className="flex h-16 items-center px-6 justify-between border-b">
+        {/* Collapse Toggle - Menu Icon */}
+        <button
+          onClick={onToggleCollapse}
+          className="flex items-center justify-center p-2 hover:bg-muted rounded transition-colors"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <Menu className="w-5 h-5 text-foreground" strokeWidth={2} />
+        </button>
+        
+        {!isCollapsed && (
+          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary transition-all tracking-tight">
             <span>
               DRK<span className="text-muted-foreground">/</span>MTTR
             </span>
-          )}
-          {isCollapsed && (
-            <span className="text-sm">
-              D<span className="text-muted-foreground">/</span>M
-            </span>
-          )}
-        </Link>
+          </Link>
+        )}
       </div>
       
       <div className="flex-1 overflow-auto py-2">
-        <nav className="grid gap-1 px-4">
+        <nav className="grid gap-1 px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
@@ -82,15 +79,15 @@ export default function Layout() {
                 to={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:text-primary",
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all hover:text-primary",
                   isActive 
                     ? "bg-primary/10 text-primary" 
                     : "text-muted-foreground hover:bg-muted",
-                  isCollapsed && "justify-center"
+                  isCollapsed && "justify-center px-3"
                 )}
                 title={isCollapsed ? item.label : undefined}
               >
-                <Icon className="h-4 w-4 flex-shrink-0" />
+                <Icon className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
                 {!isCollapsed && <span>{item.label}</span>}
               </Link>
             );
@@ -152,26 +149,12 @@ export default function Layout() {
     <div className={cn(
       "grid min-h-screen w-full transition-all duration-300",
       collapsed 
-        ? "md:grid-cols-[80px_1fr]" 
+        ? "md:grid-cols-[64px_1fr]" 
         : "md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr]"
     )}>
       {/* Desktop Sidebar */}
-      <div className="hidden border-r bg-zinc-50/40 dark:bg-zinc-900/40 md:block relative">
-        <SidebarContent isCollapsed={collapsed} />
-        
-        {/* Collapse Toggle Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute -right-3 top-20 h-6 w-6 rounded-full border shadow-md bg-background hover:bg-accent z-10"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-3 w-3" />
-          ) : (
-            <ChevronLeft className="h-3 w-3" />
-          )}
-        </Button>
+      <div className="hidden border-r bg-zinc-50/40 dark:bg-zinc-900/40 md:block">
+        <SidebarContent isCollapsed={collapsed} onToggleCollapse={() => setCollapsed(!collapsed)} />
       </div>
 
       {/* Mobile & Main Content */}
@@ -186,7 +169,7 @@ export default function Layout() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-              <SidebarContent isCollapsed={false} />
+              <SidebarContent isCollapsed={false} onToggleCollapse={() => {}} />
             </SheetContent>
           </Sheet>
           <span className="font-bold tracking-tight">
