@@ -1,187 +1,131 @@
-import { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from '@/store/slices/authSlice';
-import { useToast } from '@/hooks/use-toast';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '@/store/authSlice';
 import { 
-  LayoutDashboard, 
-  PlusCircle, 
-  Briefcase, 
-  LogOut, 
-  Menu, 
-  Trophy
+  Home, Target, FileText, Settings, LogOut, Menu, X,
+  Users, CheckCircle, Building2, Sparkles, Plus
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import VerificationBanner from './VerificationBanner';
 
 export default function Layout() {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const { toast } = useToast();
-  const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const { user, verificationStatus } = useSelector((state) => state.auth);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navItems = user?.role === 'BRAND' ? [
-    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/campaigns/create', label: 'Create Campaign', icon: PlusCircle },
-    { href: '/campaigns/my', label: 'My Campaigns', icon: Briefcase },
-  ] : [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/campaigns', label: 'Find Work', icon: Briefcase },
-    { href: '/submissions', label: 'My Submissions', icon: Trophy },
-  ];
+  const isAdmin = user?.role === 'ADMIN';
+  const isBrand = user?.role === 'BRAND';
+  const isInfluencer = user?.role === 'INFLUENCER';
 
   const handleLogout = async () => {
-    const result = await dispatch(logoutUser());
-    
-    if (logoutUser.fulfilled.match(result)) {
-      toast({
-        title: 'Logged out',
-        description: 'See you soon!',
-      });
-      navigate('/auth/login');
-    }
+    await dispatch(logout());
+    navigate('/auth/login');
   };
 
-  const SidebarContent = ({ isCollapsed = false, onToggleCollapse }) => (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex h-16 items-center px-6 justify-between border-b">
-        {/* Collapse Toggle - Menu Icon */}
-        <button
-          onClick={onToggleCollapse}
-          className="flex items-center justify-center p-2 hover:bg-muted rounded transition-colors"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <Menu className="w-5 h-5 text-foreground" strokeWidth={2} />
-        </button>
-        
-        {!isCollapsed && (
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary transition-all tracking-tight">
-            <span>
-              DRK<span className="text-muted-foreground">/</span>MTTR
-            </span>
-          </Link>
-        )}
-      </div>
-      
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid gap-1 px-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all hover:text-primary",
-                  isActive 
-                    ? "bg-primary/10 text-primary" 
-                    : "text-muted-foreground hover:bg-muted",
-                  isCollapsed && "justify-center px-3"
-                )}
-                title={isCollapsed ? item.label : undefined}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+  const adminLinks = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/verifications/influencers', icon: Sparkles, label: 'Influencer Verifications' },
+    { to: '/admin/verifications/brands', icon: Building2, label: 'Brand Verifications' },
+    { to: '/campaigns', icon: Target, label: 'All Campaigns' },
+  ];
 
-      <div className="border-t p-4">
-        {!isCollapsed ? (
-          <>
-            <div className="flex items-center gap-3 mb-4 px-2">
-              <Avatar>
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-sm">
-                <p className="font-medium leading-none">{user?.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">{user?.email}</p>
-                <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-500 font-medium mt-1 inline-block">
-                  {user?.role}
-                </span>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </Button>
-          </>
-        ) : (
-          <div className="flex flex-col gap-2 items-center">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <Button 
-              variant="outline" 
-              size="icon"
-              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={handleLogout}
-              title="Log out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const brandLinks = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/campaigns/my', icon: Target, label: 'My Campaigns' },
+    { to: '/campaigns/create', icon: Plus, label: 'Create Campaign' },
+  ];
+
+  const influencerLinks = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/campaigns', icon: Target, label: 'Browse Campaigns' },
+    { to: '/submissions', icon: FileText, label: 'My Submissions' },
+  ];
+
+  const links = isAdmin ? adminLinks : isBrand ? brandLinks : influencerLinks;
 
   return (
-    <div className={cn(
-      "grid min-h-screen w-full transition-all duration-300",
-      collapsed 
-        ? "md:grid-cols-[64px_1fr]" 
-        : "md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr]"
-    )}>
-      {/* Desktop Sidebar */}
-      <div className="hidden border-r bg-zinc-50/40 dark:bg-zinc-900/40 md:block">
-        <SidebarContent isCollapsed={collapsed} onToggleCollapse={() => setCollapsed(!collapsed)} />
-      </div>
+    <div className="min-h-screen bg-neutral-50">
+      {verificationStatus && verificationStatus !== 'VERIFIED' && !isAdmin && <VerificationBanner />}
+      
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
+      >
+        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
 
-      {/* Mobile & Main Content */}
-      <div className="flex flex-col">
-        {/* Mobile Header */}
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-6 md:hidden">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <SidebarContent isCollapsed={false} onToggleCollapse={() => {}} />
-            </SheetContent>
-          </Sheet>
-          <span className="font-bold tracking-tight">
-            DRK<span className="text-muted-foreground">/</span>MTTR
-          </span>
-        </header>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="p-6 border-b">
+            <Link to="/dashboard" className="text-2xl font-bold text-neutral-900">
+              DRK<span className="text-neutral-400">/</span>MTTR
+            </Link>
+            <p className="text-xs text-neutral-500 mt-1 capitalize">{user?.role?.toLowerCase()} Panel</p>
+          </div>
 
-        {/* Main Page Content Injected Here */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            {links.map((link) => {
+              const isActive = location.pathname === link.to;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive 
+                      ? 'bg-neutral-900 text-white' 
+                      : 'text-neutral-600 hover:bg-neutral-100'
+                  }`}
+                >
+                  <link.icon className="w-5 h-5" />
+                  <span className="font-medium">{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* User Info & Logout */}
+          <div className="p-4 border-t">
+            <div className="flex items-center gap-3 mb-4 px-2">
+              <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
+                <span className="text-sm font-semibold">{user?.name?.[0]?.toUpperCase()}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.name}</p>
+                <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <main className="lg:ml-64">
+        <Outlet />
+      </main>
     </div>
   );
 }

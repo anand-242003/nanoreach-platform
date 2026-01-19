@@ -20,11 +20,13 @@ const initialState = {
 
 export const fetchCampaigns = createAsyncThunk(
   'campaigns/fetchAll',
-  async ({ page = 1, limit = 10, status = 'ACTIVE' }, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, status = 'ACTIVE', search = '' }, { rejectWithValue }) => {
     try {
-      const { data } = await api.get('/campaigns', {
-        params: { page, limit, status }
-      });
+      const params = { page, limit, status };
+      if (search && search.trim()) {
+        params.search = search.trim();
+      }
+      const { data } = await api.get('/campaigns', { params });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch campaigns');

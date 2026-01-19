@@ -13,6 +13,8 @@ import MyCampaigns from '@/pages/MyCampaigns';
 import Submissions from '@/pages/Submissions';
 import EditCampaign from '@/pages/EditCampaign';
 import CampaignSubmissions from '@/pages/CampaignSubmissions';
+import Onboarding from '@/pages/Onboarding';
+import VerificationQueue from '@/pages/admin/VerificationQueue';
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
           </ProtectedRoute>
         }>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/campaigns/create" element={<CreateCampaign />} />
           <Route path="/campaigns/my" element={<MyCampaigns />} />
@@ -36,6 +39,7 @@ function App() {
           <Route path="/campaigns/:id/submissions" element={<CampaignSubmissions />} />
           <Route path="/campaigns/:id/submit" element={<Submissions />} />
           <Route path="/submissions" element={<Submissions />} />
+          <Route path="/admin/verifications/:type" element={<VerificationQueue />} />
         </Route>
       </Routes>
       <Toaster />

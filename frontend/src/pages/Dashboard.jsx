@@ -1,297 +1,318 @@
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Search, TrendingUp, Users, Target, Award, Clock, DollarSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '@/lib/axios';
-import { cn } from '@/lib/utils';
+import { useSelector } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  TrendingUp, Users, DollarSign, Eye, Plus, ArrowRight,
+  Clock, AlertCircle, Building2, Sparkles,
+  Target, Award, FileText
+} from 'lucide-react';
 
-const Dashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+export default function Dashboard() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { user, verificationStatus } = useSelector((state) => state.auth);
+  const [stats, setStats] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+
+  const isAdmin = user?.role === 'ADMIN';
+  const isBrand = user?.role === 'BRAND';
+  const isInfluencer = user?.role === 'INFLUENCER';
+  const isVerified = verificationStatus === 'VERIFIED';
 
   useEffect(() => {
-    fetchCampaigns();
-  }, []);
+    fetchDashboardData();
+  }, [user]);
 
-  const fetchCampaigns = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const endpoint = user?.role === 'BRAND' ? '/campaigns/my' : '/campaigns';
-      const { data } = await api.get(endpoint, { params: { limit: 4 } });
-      setCampaigns(data.campaigns || []);
+      if (isAdmin) {
+        const [influencersRes, brandsRes] = await Promise.all([
+          axios.get(`${API_URL}/admin/verifications/influencers?status=UNDER_REVIEW`, { withCredentials: true }).catch(() => ({ data: { influencers: [] } })),
+          axios.get(`${API_URL}/admin/verifications/brands?status=UNDER_REVIEW`, { withCredentials: true }).catch(() => ({ data: { brands: [] } })),
+        ]);
+        setStats({
+          pendingInfluencers: influencersRes.data.influencers?.length || 0,
+          pendingBrands: brandsRes.data.brands?.length || 0,
+        });
+      }
+      const campaignsRes = await axios.get(`${API_URL}/campaigns?status=ACTIVE`, { withCredentials: true }).catch(() => ({ data: { campaigns: [] } }));
+      setCampaigns(campaignsRes.data.campaigns || []);
     } catch (error) {
-      console.error('Failed to fetch campaigns');
+      console.error('Dashboard Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterCategories = [
-    { id: 'all', label: 'All Campaigns', icon: Target, description: 'Everything, past & present' },
-    { id: 'featured', label: 'Featured', icon: Award, description: 'Premium challenges with prizes' },
-    { id: 'getting-started', label: 'Getting Started', icon: TrendingUp, description: 'Approachable fundamentals' },
-    { id: 'research', label: 'Research', icon: Users, description: 'Scientific and scholarly challenges' },
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount || 0);
-  };
+  if (isAdmin) return <AdminDashboard stats={stats} campaigns={campaigns} />;
+  if (isBrand) return <BrandDashboard campaigns={campaigns} isVerified={isVerified} />;
+  return <InfluencerDashboard campaigns={campaigns} isVerified={isVerified} user={user} />;
+}
 
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diffTime = d - now;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return 'Ended';
-    if (diffDays === 0) return 'Ends today';
-    if (diffDays <= 7) return `${diffDays} days left`;
-    
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
+// Admin Dashboard
+function AdminDashboard({ stats, campaigns }) {
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with Illustration */}
-      <div className="md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-12 mb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between gap-8">
-            <div className="flex-1 max-w-2xl">
-              <h1 className="text-5xl font-bold text-slate-900 mb-4 leading-tight">
-                {user?.role === 'BRAND' 
-                  ? 'Host your brand campaign on DRK/MTTR'
-                  : 'Grow your influence with brand campaigns'}
-              </h1>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-                {user?.role === 'BRAND'
-                  ? "Whether you're launching a product, building awareness, or engaging your audience, the DRK/MTTR platform connects you with talented creators to amplify your brand goals."
-                  : "Discover exciting brand campaigns, showcase your creativity, and earn rewards. Find help in the documentation or learn about Community Campaigns."}
-              </p>
-              <Button 
-                onClick={() => navigate(user?.role === 'BRAND' ? '/campaigns/create' : '/campaigns')}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-6 text-base rounded-lg"
-              >
-                {user?.role === 'BRAND' ? 'Create a Campaign' : 'Browse Campaigns'}
-              </Button>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-neutral-900">Admin Dashboard</h1>
+        <p className="text-neutral-500 text-sm mt-1">Manage verifications and monitor platform</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          title="Pending Influencers"
+          value={stats?.pendingInfluencers || 0}
+          icon={Sparkles}
+          onClick={() => navigate('/admin/verifications/influencers')}
+        />
+        <StatCard
+          title="Pending Brands"
+          value={stats?.pendingBrands || 0}
+          icon={Building2}
+          onClick={() => navigate('/admin/verifications/brands')}
+        />
+        <StatCard title="Active Campaigns" value={campaigns.length} icon={Target} />
+        <StatCard title="Total Users" value="-" icon={Users} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="font-semibold mb-4">Quick Actions</h2>
+          <div className="space-y-2">
+            <button
+              onClick={() => navigate('/admin/verifications/influencers')}
+              className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-neutral-50 text-left"
+            >
+              <span className="text-sm">Review Influencer Verifications</span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                {stats?.pendingInfluencers || 0}
+              </span>
+            </button>
+            <button
+              onClick={() => navigate('/admin/verifications/brands')}
+              className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-neutral-50 text-left"
+            >
+              <span className="text-sm">Review Brand Verifications</span>
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                {stats?.pendingBrands || 0}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="font-semibold mb-4">System Status</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-600">API Server</span>
+              <span className="text-green-600">Operational</span>
             </div>
-            
-            {/* Illustration */}
-            <div className=" lg:flex items-center justify-center">
-              <img 
-                src="/competition-logo.png" 
-                alt="Competition" 
-                className="w-80 h-80"
-              />
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-600">Database</span>
+              <span className="text-green-600">Connected</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-600">File Storage</span>
+              <span className="text-green-600">Active</span>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Search Bar */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search campaigns"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg pl-12 pr-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+// Brand Dashboard
+function BrandDashboard({ campaigns, isVerified }) {
+  const navigate = useNavigate();
+  const { verificationStatus } = useSelector((state) => state.auth);
+
+  if (!isVerified) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <VerificationRequired status={verificationStatus} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Brand Dashboard</h1>
+          <p className="text-neutral-500 text-sm mt-1">Manage campaigns and track performance</p>
         </div>
+        <button
+          onClick={() => navigate('/campaigns/create')}
+          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Create Campaign
+        </button>
       </div>
 
-      {/* Filter Categories */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {filterCategories.map((category) => {
-            const Icon = category.icon;
-            const isActive = activeFilter === category.id;
-            return (
-              <button
-                key={category.id}
-                onClick={() => setActiveFilter(category.id)}
-                className={cn(
-                  "flex-shrink-0 flex items-center gap-3 px-5 py-3 border rounded-lg transition-all group",
-                  isActive 
-                    ? "bg-slate-900 text-white border-slate-900" 
-                    : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm"
-                )}
-              >
-                <Icon className={cn(
-                  "w-5 h-5",
-                  isActive ? "text-white" : "text-slate-600 group-hover:text-slate-900"
-                )} />
-                <div className="text-left">
-                  <div className={cn(
-                    "text-sm font-semibold",
-                    isActive ? "text-white" : "text-slate-900"
-                  )}>{category.label}</div>
-                  <div className={cn(
-                    "text-xs",
-                    isActive ? "text-slate-300" : "text-slate-500"
-                  )}>{category.description}</div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Active Campaigns" value="0" icon={Target} />
+        <StatCard title="Total Applications" value="0" icon={FileText} />
+        <StatCard title="Total Spent" value="₹0" icon={DollarSign} />
+        <StatCard title="Total Reach" value="0" icon={Eye} />
       </div>
 
-      {/* Section Header */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-5 h-5 text-slate-600" />
-              <h2 className="text-2xl font-bold text-slate-900">
-                {user?.role === 'BRAND' ? 'Your Campaigns' : 'Getting Started'}
-              </h2>
-            </div>
-            <p className="text-sm text-slate-600">
-              {user?.role === 'BRAND' 
-                ? 'Manage your active campaigns'
-                : 'Campaigns with approachable fundamentals'}
-            </p>
-          </div>
-          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            See all →
+      <div className="bg-white rounded-lg border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold">Your Campaigns</h2>
+          <Link to="/campaigns/my" className="text-sm text-neutral-600 hover:text-neutral-900">
+            View All
+          </Link>
+        </div>
+        
+        <div className="text-center py-12">
+          <Target className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+          <p className="text-neutral-500 mb-4">No campaigns yet</p>
+          <button
+            onClick={() => navigate('/campaigns/create')}
+            className="text-sm text-neutral-900 font-medium hover:underline"
+          >
+            Create your first campaign
           </button>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Campaign Cards Grid */}
-      <div className="max-w-7xl mx-auto">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-lg overflow-hidden animate-pulse">
-                <div className="h-40 bg-slate-200" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-slate-200 rounded w-3/4" />
-                  <div className="h-3 bg-slate-200 rounded w-full" />
-                  <div className="h-3 bg-slate-200 rounded w-2/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : campaigns.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-slate-200 rounded-lg p-12 text-center">
-            <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No campaigns yet</h3>
-            <p className="text-slate-600 mb-6">
-              {user?.role === 'BRAND' 
-                ? 'Create your first campaign to start working with creators'
-                : 'Browse available campaigns to get started'}
-            </p>
-            <Button 
-              onClick={() => navigate(user?.role === 'BRAND' ? '/campaigns/create' : '/campaigns')}
-              className="bg-slate-900 hover:bg-slate-800"
-            >
-              {user?.role === 'BRAND' ? 'Create Campaign' : 'Browse Campaigns'}
-            </Button>
+// Influencer Dashboard
+function InfluencerDashboard({ campaigns, isVerified, user }) {
+  const navigate = useNavigate();
+  const { verificationStatus } = useSelector((state) => state.auth);
+
+  if (!isVerified) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <VerificationRequired status={verificationStatus} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-neutral-900">
+          Welcome, {user?.influencerProfile?.displayName || user?.name}
+        </h1>
+        <p className="text-neutral-500 text-sm mt-1">Find campaigns and start earning</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Applied Campaigns" value="0" icon={FileText} />
+        <StatCard title="Total Earnings" value="₹0" icon={DollarSign} />
+        <StatCard title="Total Views" value="0" icon={Eye} />
+        <StatCard title="Success Rate" value="0%" icon={Award} />
+      </div>
+
+      <div className="bg-white rounded-lg border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold">Available Campaigns</h2>
+          <Link to="/campaigns" className="text-sm text-neutral-600 hover:text-neutral-900">
+            Browse All
+          </Link>
+        </div>
+
+        {campaigns.length === 0 ? (
+          <div className="text-center py-12">
+            <Target className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+            <p className="text-neutral-500">No campaigns available right now</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {campaigns.map((campaign) => (
+          <div className="space-y-3">
+            {campaigns.slice(0, 5).map((campaign) => (
               <div
                 key={campaign.id}
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                className="bg-white border border-slate-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer group"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-neutral-50 cursor-pointer"
               >
-                {/* Campaign Image */}
-                <div className="relative h-40  overflow-hidden">
-                  <div className="absolute inset-0" />
-                  
-                  {/* Brand Logo Circle */}
-                  <div className="absolute bottom-3 left-3 w-12 h-12 bg-white rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-                    <span className="text-xs font-bold text-slate-900">
-                      {campaign.brand?.name?.substring(0, 2).toUpperCase() || user?.name?.substring(0, 2).toUpperCase() || 'BR'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Campaign Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {campaign.title}
-                  </h3>
-                  
-                  <p className="text-sm text-slate-600 line-clamp-2 mb-4">
-                    {campaign.description}
+                <div>
+                  <h3 className="font-medium text-neutral-900">{campaign.title}</h3>
+                  <p className="text-sm text-neutral-500">
+                    Budget: ₹{campaign.budget?.toLocaleString()} | Ends: {new Date(campaign.endDate).toLocaleDateString()}
                   </p>
-
-                  {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3" />
-                      <span className="font-semibold text-slate-900">
-                        {formatCurrency(campaign.prizePool || campaign.budget)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatDate(campaign.deadline)}</span>
-                    </div>
-                  </div>
                 </div>
+                <ArrowRight className="w-4 h-4 text-neutral-400" />
               </div>
             ))}
           </div>
         )}
       </div>
+    </div>
+  );
+}
 
-      {/* Why Section */}
-      {user?.role === 'BRAND' && (
-        <div className="max-w-7xl mx-auto mt-16 mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8">Why a DRK/MTTR Campaign?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                DRK/MTTR is the home of creator marketing, with thousands of talented creators ready to amplify your brand message through authentic content and engagement.
-              </p>
-              <p className="text-slate-600 leading-relaxed">
-                You set the terms, creators submit their work, and our platform scores their submissions in real-time to find the perfect match for your brand.
-              </p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Campaign Features</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Users className="w-3 h-3 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-slate-900">Creator Network</div>
-                    <div className="text-sm text-slate-600">Access thousands of verified creators</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <TrendingUp className="w-3 h-3 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-slate-900">Real-time Analytics</div>
-                    <div className="text-sm text-slate-600">Track performance and engagement</div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+// Stat Card Component
+function StatCard({ title, value, icon: Icon, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-lg border p-5 ${onClick ? 'cursor-pointer hover:border-neutral-400' : ''}`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <Icon className="w-5 h-5 text-neutral-400" />
+      </div>
+      <p className="text-2xl font-bold text-neutral-900">{value}</p>
+      <p className="text-sm text-neutral-500">{title}</p>
+    </div>
+  );
+}
+
+// Verification Required Component
+function VerificationRequired({ status }) {
+  const navigate = useNavigate();
+
+  const config = {
+    PENDING: {
+      title: 'Complete Your Profile',
+      message: 'You need to complete your profile to access the dashboard.',
+      action: 'Complete Profile',
+    },
+    UNDER_REVIEW: {
+      title: 'Verification Under Review',
+      message: 'Your profile is being reviewed. This usually takes 24-48 hours.',
+      action: null,
+    },
+    REJECTED: {
+      title: 'Verification Rejected',
+      message: 'Your verification was rejected. Please update your profile and try again.',
+      action: 'Update Profile',
+    },
+  };
+
+  const c = config[status] || config.PENDING;
+
+  return (
+    <div className="bg-neutral-50 rounded-lg border p-8 text-center">
+      <AlertCircle className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+      <h2 className="text-xl font-bold text-neutral-900 mb-2">{c.title}</h2>
+      <p className="text-neutral-600 mb-6 max-w-md mx-auto">{c.message}</p>
+      {c.action && (
+        <button
+          onClick={() => navigate('/onboarding')}
+          className="px-6 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800"
+        >
+          {c.action}
+        </button>
       )}
     </div>
   );
-};
-
-export default Dashboard;
+}

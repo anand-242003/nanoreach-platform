@@ -74,29 +74,24 @@ export const createCampaign = async (req, res) => {
 
 export const getAllCampaigns = async (req, res) => {
   try {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    
-    page = Math.max(1, Math.min(page, 1000));  
-    limit = Math.max(1, Math.min(limit, 100)); 
+    const { page = 1, limit = 100, status = "ACTIVE" } = req.query;
     const skip = (page - 1) * limit;
 
     const campaigns = await prisma.campaign.findMany({
-      where: {
-        status: "ACTIVE",
-      },
-      skip,
-      take: limit,
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: { status },
+      skip: parseInt(skip),
+      take: parseInt(limit),
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         title: true,
         description: true,
-        prizePool: true,
-        deadline: true,
+        budget: true,
+        startDate: true,
+        endDate: true,
         status: true,
+        categoryTags: true,
+        prizeDistribution: true,
         createdAt: true,
         brand: {
           select: {
@@ -104,31 +99,29 @@ export const getAllCampaigns = async (req, res) => {
             name: true,
           },
         },
+        _count: {
+          select: {
+            applications: true,
+            submissions: true,
+          },
+        },
       },
     });
 
-    const total = await prisma.campaign.count({
-      where: {
-        status: "ACTIVE",
-      },
-    });
+    const total = await prisma.campaign.count({ where: { status } });
 
     res.json({
       campaigns,
       pagination: {
-        page,
-        limit,
+        page: parseInt(page),
+        limit: parseInt(limit),
         total,
-        totalPages: Math.ceil(total / limit),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error("Get Campaigns Error:", error.message);
-    } else {
-        console.error("Get Campaigns Error:", error);
-    }
-    res.status(500).json({ message: "Server error while fetching campaigns" });
+    console.error("Get Campaigns Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -142,16 +135,28 @@ export const getCampaignById = async (req, res) => {
         id: true,
         title: true,
         description: true,
-        prizePool: true,
-        deadline: true,
+        budget: true,
+        startDate: true,
+        endDate: true,
         status: true,
+        categoryTags: true,
+        contentRequirements: true,
+        rules: true,
+        resultsDate: true,
+        evaluationCriteria: true,
+        prizeDistribution: true,
         createdAt: true,
-        updatedAt: true,
         brand: {
           select: {
             id: true,
             name: true,
             email: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
+            submissions: true,
           },
         },
       },
@@ -163,12 +168,8 @@ export const getCampaignById = async (req, res) => {
 
     res.json({ campaign });
   } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error("Get Campaign Error:", error.message);
-    } else {
-        console.error("Get Campaign Error:", error);
-    }
-    res.status(500).json({ message: "Server error while fetching campaign" });
+    console.error("Get Campaign Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 

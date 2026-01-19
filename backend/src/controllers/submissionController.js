@@ -2,15 +2,15 @@ import prisma from '../config/db.js';
 
 export const createSubmission = async (req, res) => {
   try {
-    const { campaignId, description, socialLink } = req.body;
+    const { campaignId, contentUrl, message } = req.body;
     const creatorId = req.user.id;
 
     if (!campaignId) {
       return res.status(400).json({ message: 'Campaign ID is required' });
     }
 
-    if (!description) {
-      return res.status(400).json({ message: 'Description is required' });
+    if (!contentUrl) {
+      return res.status(400).json({ message: 'Content URL is required' });
     }
 
     const campaign = await prisma.campaign.findUnique({
@@ -21,24 +21,25 @@ export const createSubmission = async (req, res) => {
       return res.status(404).json({ message: 'Campaign not found' });
     }
 
-    const files = req.files ? req.files.map(file => ({
-      name: file.originalname,
-      url: `/uploads/${file.filename}`,
-      type: file.mimetype,
-      size: file.size
-    })) : [];
+    const existingSubmission = await prisma.submission.findFirst({
+      where: {
+        campaignId,
+        creatorId
+      }
+    });
 
-    const submissionData = {
-      campaignId,
-      creatorId,
-      description,
-      socialLink: socialLink || null,
-      files: files.length > 0 ? JSON.stringify(files) : null,
-      status: 'PENDING'
-    };
+    if (existingSubmission) {
+      return res.status(400).json({ message: 'You have already submitted to this campaign' });
+    }
 
     const submission = await prisma.submission.create({
-      data: submissionData,
+      data: {
+        campaignId,
+        creatorId,
+        contentUrl,
+        message: message || null,
+        status: 'PENDING'
+      },
       include: {
         creator: {
           select: {
@@ -56,14 +57,9 @@ export const createSubmission = async (req, res) => {
       }
     });
 
-    const responseSubmission = {
-      ...submission,
-      files: submission.files ? JSON.parse(submission.files) : []
-    };
-
     res.status(201).json({
       message: 'Submission created successfully',
-      submission: responseSubmission
+      submission
     });
   } catch (error) {
     console.error('Create submission error:', error.message);
@@ -78,18 +74,34 @@ export const getCampaignSubmissions = async (req, res) => {
   try {
     const { id: campaignId } = req.params;
 
+    // Validate campaign ID format
+    if (!campaignId || campaignId.length !== 24) {
+      return res.status(400).json({ message: 'Invalid campaign ID format' });
+    }
+
+    console.log('Fetching submissions for campaign:', campaignId);
+    console.log('User ID:', req.user?.id);
+    console.log('User role:', req.user?.role);
+
+    // Check if campaign exists
     const campaign = await prisma.campaign.findUnique({
       where: { id: campaignId }
     });
 
     if (!campaign) {
+      console.log('Campaign not found:', campaignId);
       return res.status(404).json({ message: 'Campaign not found' });
     }
 
+    console.log('Campaign found:', campaign.id, 'Brand ID:', campaign.brandId);
+
+    // Check authorization
     if (campaign.brandId !== req.user.id) {
+      console.log('Authorization failed. Campaign brand:', campaign.brandId, 'User:', req.user.id);
       return res.status(403).json({ message: 'Not authorized to view these submissions' });
     }
 
+    // Fetch submissions
     const submissions = await prisma.submission.findMany({
       where: { campaignId },
       include: {
@@ -104,15 +116,21 @@ export const getCampaignSubmissions = async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    const submissionsWithFiles = submissions.map(sub => ({
-      ...sub,
-      files: sub.files ? JSON.parse(sub.files) : []
-    }));
-
-    res.json({ submissions: submissionsWithFiles });
+    console.log('Found submissions:', submissions.length);
+    res.json(submissions);
   } catch (error) {
-    console.error('Get campaign submissions error:', error.message);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Get campaign submissions error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.stack) {
+      console.error('Error stack:', error.stack);
+    }
+    
+    res.status(500).json({ 
+      message: 'Server error while fetching submissions', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -136,21 +154,21 @@ export const getMySubmissions = async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    const submissionsWithFiles = submissions.map(sub => ({
-      ...sub,
-      files: sub.files ? JSON.parse(sub.files) : []
-    }));
-
-    res.json({ submissions: submissionsWithFiles });
+    res.json(submissions);
   } catch (error) {
     console.error('Get my submissions error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-export const approveSubmission = async (req, res) => {
+export const updateSubmissionStatus = async (req, res) => {
   try {
     const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
 
     const submission = await prisma.submission.findUnique({
       where: { id },
@@ -164,12 +182,12 @@ export const approveSubmission = async (req, res) => {
     }
 
     if (submission.campaign.brandId !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to approve this submission' });
+      return res.status(403).json({ message: 'Not authorized to update this submission' });
     }
 
     const updatedSubmission = await prisma.submission.update({
       where: { id },
-      data: { status: 'APPROVED' },
+      data: { status },
       include: {
         creator: {
           select: {
@@ -182,60 +200,13 @@ export const approveSubmission = async (req, res) => {
     });
 
     res.json({
-      message: 'Submission approved',
-      submission: {
-        ...updatedSubmission,
-        files: updatedSubmission.files ? JSON.parse(updatedSubmission.files) : []
-      }
+      message: `Submission ${status.toLowerCase()}`,
+      submission: updatedSubmission
     });
   } catch (error) {
-    console.error('Approve submission error:', error);
+    console.error('Update submission status error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-export const rejectSubmission = async (req, res) => {
-  try {
-    const { id } = req.params;
 
-    const submission = await prisma.submission.findUnique({
-      where: { id },
-      include: {
-        campaign: true
-      }
-    });
-
-    if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
-    }
-
-    if (submission.campaign.brandId !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to reject this submission' });
-    }
-
-    const updatedSubmission = await prisma.submission.update({
-      where: { id },
-      data: { status: 'REJECTED' },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    res.json({
-      message: 'Submission rejected',
-      submission: {
-        ...updatedSubmission,
-        files: updatedSubmission.files ? JSON.parse(updatedSubmission.files) : []
-      }
-    });
-  } catch (error) {
-    console.error('Reject submission error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};

@@ -1,285 +1,193 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, ExternalLink, Download, Loader2 } from 'lucide-react';
+import { TikTokEmbed, InstagramEmbed, YouTubeEmbed } from 'react-social-media-embed';
+import { Check, X, Loader2, ArrowLeft } from 'lucide-react';
+import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import api from '@/lib/axios';
 
-const CampaignSubmissions = () => {
+export default function CampaignSubmissions() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(null);
-
-  useEffect(() => {
-    fetchSubmissions();
-  }, [id]);
+  const [campaign, setCampaign] = useState(null);
 
   const fetchSubmissions = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get(`/campaigns/${id}/submissions`);
-      setSubmissions(data.submissions || []);
+      console.log('Fetching submissions for campaign:', id);
+      const res = await api.get(`/campaigns/${id}/submissions`);
+      console.log('Submissions response:', res.data);
+      setSubmissions(res.data);
     } catch (error) {
+      console.error('Fetch submissions error:', error);
+      console.error('Error response:', error.response);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to load submissions',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || error.message || "Failed to load submissions",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (submissionId) => {
+  const fetchCampaign = async () => {
     try {
-      setActionLoading(submissionId);
-      await api.put(`/submissions/${submissionId}/approve`);
-      
-      toast({
-        title: 'Success',
-        description: 'Submission approved successfully',
-      });
-      
-      setSubmissions(submissions.map(sub => 
-        sub.id === submissionId ? { ...sub, status: 'APPROVED' } : sub
-      ));
+      const res = await api.get(`/campaigns/${id}`);
+      setCampaign(res.data.campaign || res.data);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to approve submission',
-        variant: 'destructive',
-      });
-    } finally {
-      setActionLoading(null);
+      console.error('Failed to load campaign:', error);
     }
   };
 
-  const handleReject = async (submissionId) => {
-    try {
-      setActionLoading(submissionId);
-      await api.put(`/submissions/${submissionId}/reject`);
-      
-      toast({
-        title: 'Success',
-        description: 'Submission rejected',
-      });
-      
-      setSubmissions(submissions.map(sub => 
-        sub.id === submissionId ? { ...sub, status: 'REJECTED' } : sub
-      ));
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to reject submission',
-        variant: 'destructive',
-      });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  useEffect(() => {
+    fetchSubmissions();
+    fetchCampaign();
+  }, [id]);
 
-  const handleDownload = async (fileUrl, fileName) => {
+  const handleStatus = async (subId, status) => {
     try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      await api.patch(`/submissions/${subId}/status`, { status });
+      toast({
+        title: "Success",
+        description: `Submission ${status.toLowerCase()}`,
+        className: "bg-green-600 text-white border-none"
+      });
+      fetchSubmissions();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to download file',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update status",
+        variant: "destructive"
       });
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      PENDING: 'bg-amber-50 text-amber-700 border border-amber-200',
-      APPROVED: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-      REJECTED: 'bg-red-50 text-red-700 border border-red-200',
-    };
-    return colors[status] || 'bg-neutral-100 text-neutral-600';
+  const renderEmbed = (url) => {
+    try {
+      if (url.includes('tiktok')) {
+        return <TikTokEmbed url={url} width="100%" />;
+      }
+      if (url.includes('instagram')) {
+        return <InstagramEmbed url={url} width="100%" />;
+      }
+      if (url.includes('youtube') || url.includes('youtu.be')) {
+        return <YouTubeEmbed url={url} width="100%" />;
+      }
+      return (
+        <div className="p-4 text-center">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+            View Link
+          </a>
+        </div>
+      );
+    } catch (error) {
+      return (
+        <div className="p-4 text-center">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+            View Link
+          </a>
+        </div>
+      );
+    }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <Button
-          onClick={() => navigate(`/campaigns/${id}`)}
-          variant="outline"
-          className="mb-6 gap-2"
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="mb-6">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/my-campaigns')}
+          className="mb-4"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Campaign
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to My Campaigns
         </Button>
-
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">Campaign Submissions</h1>
-          <p className="text-neutral-600 mt-2">{submissions.length} submissions received</p>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-neutral-400" />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Review Submissions</h1>
+            {campaign && (
+              <p className="text-muted-foreground mt-1">
+                {campaign.campaign?.title || campaign.title || 'Campaign'}
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="space-y-6">
-            {submissions.map((submission) => (
-              <div
-                key={submission.id}
-                className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            {submissions.length} Submission{submissions.length !== 1 ? 's' : ''}
+          </Badge>
+        </div>
+      </div>
+
+      {submissions.length === 0 ? (
+        <Card className="p-12 text-center">
+          <p className="text-muted-foreground">No submissions yet</p>
+        </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {submissions.map((sub) => (
+            <Card key={sub.id} className="overflow-hidden">
+              <CardHeader className="bg-neutral-50 dark:bg-neutral-900 border-b p-4">
+                <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-xl font-semibold text-neutral-900">
-                      {submission.creator?.name || 'Anonymous'}
-                    </h3>
-                    <p className="text-sm text-neutral-500">{submission.creator?.email}</p>
-                    <p className="text-xs text-neutral-400 mt-1">
-                      Submitted {formatDate(submission.createdAt)}
-                    </p>
+                    <span className="font-medium">{sub.creator.name}</span>
+                    <p className="text-xs text-muted-foreground">{sub.creator.email}</p>
                   </div>
-                  <Badge className={getStatusColor(submission.status)}>
-                    {submission.status}
+                  <Badge 
+                    variant={
+                      sub.status === 'APPROVED' ? 'default' : 
+                      sub.status === 'REJECTED' ? 'destructive' : 
+                      'outline'
+                    }
+                  >
+                    {sub.status}
                   </Badge>
                 </div>
-
-                <div className="mb-4">
-                  <p className="text-neutral-700 leading-relaxed">{submission.description}</p>
+                {sub.message && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    "{sub.message}"
+                  </p>
+                )}
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* THE VISUAL VERIFICATION LAYER */}
+                <div className="flex justify-center bg-black min-h-[300px] items-center">
+                  {renderEmbed(sub.contentUrl)}
                 </div>
-
-                {submission.socialLink && (
-                  <div className="mb-4">
-                    <a
-                      href={submission.socialLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                {sub.status === 'PENDING' && (
+                  <div className="flex p-4 gap-2">
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700" 
+                      onClick={() => handleStatus(sub.id, 'APPROVED')}
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      View on Social Media
-                    </a>
-                  </div>
-                )}
-
-                {submission.files && submission.files.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-neutral-700 mb-2">Attached Files:</p>
-                    <div className="space-y-2">
-                      {submission.files.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg"
-                        >
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-neutral-400" />
-                            <div>
-                              <p className="text-sm font-medium text-neutral-900">{file.name}</p>
-                              <p className="text-xs text-neutral-500">{file.type}</p>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => handleDownload(file.url, file.name)}
-                          >
-                            <Download className="w-4 h-4" />
-                            Download
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4 border-t border-neutral-100">
-                  {submission.status === 'PENDING' && (
-                    <>
-                      <Button 
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => handleApprove(submission.id)}
-                        disabled={actionLoading === submission.id}
-                      >
-                        {actionLoading === submission.id ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Approving...
-                          </>
-                        ) : (
-                          'Approve'
-                        )}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleReject(submission.id)}
-                        disabled={actionLoading === submission.id}
-                      >
-                        {actionLoading === submission.id ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Rejecting...
-                          </>
-                        ) : (
-                          'Reject'
-                        )}
-                      </Button>
-                    </>
-                  )}
-                  {submission.status === 'APPROVED' && (
-                    <Button variant="outline" className="flex-1">
-                      Contact Creator
+                      <Check className="mr-2 h-4 w-4" /> Approve
                     </Button>
-                  )}
-                  {submission.status === 'REJECTED' && (
                     <Button 
                       variant="outline" 
-                      className="flex-1"
-                      onClick={() => handleApprove(submission.id)}
-                      disabled={actionLoading === submission.id}
+                      className="flex-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950" 
+                      onClick={() => handleStatus(sub.id, 'REJECTED')}
                     >
-                      Reconsider
+                      <X className="mr-2 h-4 w-4" /> Reject
                     </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && submissions.length === 0 && (
-          <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center">
-            <p className="text-neutral-500 text-lg">No submissions yet</p>
-            <p className="text-neutral-400 text-sm mt-2">
-              Creators will see your campaign and submit their work here
-            </p>
-          </div>
-        )}
-      </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default CampaignSubmissions;
+}

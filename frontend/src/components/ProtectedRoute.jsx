@@ -1,39 +1,33 @@
 import { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { checkAuth } from '@/store/slices/authSlice';
-import { Loader2 } from 'lucide-react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { getMe } from '@/store/authSlice';
 
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+export default function ProtectedRoute({ children }) {
   const dispatch = useDispatch();
-  const { user, loading, isAuthenticated } = useSelector((state) => state.auth);
+  const location = useLocation();
+  const { isAuthenticated, loading, initialized } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!isAuthenticated && !loading) {
-      dispatch(checkAuth());
+    if (!initialized && !loading) {
+      dispatch(getMe());
     }
-  }, [dispatch, isAuthenticated, loading]);
+  }, [dispatch, initialized, loading]);
 
-  if (loading) {
+  if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-neutral-900" />
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-neutral-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/auth/login" replace />;
-  }
-
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   return children;
-};
-
-export default ProtectedRoute;
+}

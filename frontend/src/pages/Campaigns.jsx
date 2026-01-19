@@ -1,273 +1,138 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Loader2, DollarSign, Clock, Filter, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  fetchCampaigns, 
-  setFilters, 
-  resetFilters 
-} from '@/store/slices/campaignSlice';
+import axios from 'axios';
+import { Search, Filter, Target, Calendar, DollarSign, Users } from 'lucide-react';
 
-const Campaigns = () => {
-  const dispatch = useDispatch();
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+export default function Campaigns() {
   const navigate = useNavigate();
-  
-  const { 
-    campaigns,
-    loading,
-    error,
-    pagination,
-    filters
-  } = useSelector((state) => state.campaigns);
-  
+  const { verificationStatus } = useSelector((state) => state.auth);
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
   useEffect(() => {
-    dispatch(fetchCampaigns({ 
-      page: pagination.page, 
-      limit: pagination.limit,
-      status: filters.status 
-    }));
-  }, [dispatch]);
-  
-  const handleFilterChange = (status) => {
-    dispatch(setFilters({ status }));
-    dispatch(fetchCampaigns({ 
-      page: 1,
-      limit: pagination.limit,
-      status 
-    }));
-  };
-  
-  const handlePageChange = (newPage) => {
-    dispatch(fetchCampaigns({ 
-      page: newPage, 
-      limit: pagination.limit,
-      status: filters.status 
-    }));
-  };
-  
-  const getStatusColor = (status) => {
-    const colors = {
-      ACTIVE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-      DRAFT: 'bg-amber-50 text-amber-700 border border-amber-200',
-      COMPLETED: 'bg-neutral-100 text-neutral-600 border border-neutral-200',
-    };
-    return colors[status] || 'bg-neutral-100 text-neutral-600 border border-neutral-200';
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/campaigns?status=ACTIVE`, { withCredentials: true });
+      setCampaigns(data.campaigns || []);
+    } catch (error) {
+      console.error('Fetch campaigns error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount || 0);
-  };
+  const filteredCampaigns = campaigns.filter(c => 
+    c.title.toLowerCase().includes(search.toLowerCase()) ||
+    c.description.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diffTime = d - now;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return 'Ended';
-    if (diffDays === 0) return 'Ends today';
-    if (diffDays === 1) return 'Ends tomorrow';
-    if (diffDays <= 7) return `${diffDays} days left`;
-    
-    return d.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
-  
-  if (loading) {
+  if (verificationStatus !== 'VERIFIED') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-          <span className="text-neutral-600">Loading campaigns...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white flex items-center justify-center p-4">
-        <div className="bg-white border border-red-200 rounded-2xl p-8 max-w-md w-full text-center shadow-sm">
-          <p className="text-red-600 font-medium mb-4">{error}</p>
-          <Button 
-            onClick={() => dispatch(fetchCampaigns({ page: 1, limit: 10 }))}
-            variant="destructive"
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-amber-50 rounded-xl p-8 text-center">
+          <Target className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Verification Required</h2>
+          <p className="text-neutral-600 mb-6">Complete your profile verification to browse campaigns.</p>
+          <button
+            onClick={() => navigate('/onboarding')}
+            className="px-6 py-3 bg-neutral-900 text-white rounded-lg"
           >
-            Try Again
-          </Button>
+            Complete Verification
+          </button>
         </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">Campaigns</h1>
-            <p className="text-neutral-600 mt-2">Manage and track your campaigns</p>
-          </div>
-          <Button 
-            onClick={() => navigate('/campaigns/create')}
-            className="bg-neutral-900 hover:bg-neutral-800 text-white gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </Button>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-900">Campaigns</h1>
+          <p className="text-neutral-600 mt-1">Discover and apply to campaigns</p>
         </div>
-        
-        {/* Filters */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6 mb-8 shadow-sm">
-          <div className="flex items-center gap-4 flex-wrap">
-            <Filter className="w-5 h-5 text-neutral-400" />
-            <span className="text-sm font-medium text-neutral-700">Status:</span>
-            
-            {['ACTIVE', 'DRAFT', 'COMPLETED'].map((status) => (
-              <button
-                key={status}
-                onClick={() => handleFilterChange(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filters.status === status
-                    ? 'bg-neutral-900 text-white shadow-sm'
-                    : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-            
-            <button
-              onClick={() => {
-                dispatch(resetFilters());
-                dispatch(fetchCampaigns({ page: 1, limit: 10, status: 'ACTIVE' }));
-              }}
-              className="ml-auto px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-            >
-              Reset
-            </button>
-          </div>
+      </div>
+
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search campaigns..."
+            className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          />
         </div>
-        
-        {/* Empty State */}
-        {campaigns.length === 0 ? (
-          <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-neutral-500 text-lg mb-4">No campaigns found</p>
-            <Button 
-              onClick={() => navigate('/campaigns/create')}
-              className="bg-neutral-900 hover:bg-neutral-800"
+        <button className="flex items-center gap-2 px-4 py-3 border rounded-lg hover:bg-neutral-50">
+          <Filter className="w-5 h-5" />
+          Filters
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+        </div>
+      ) : filteredCampaigns.length === 0 ? (
+        <div className="text-center py-12">
+          <Target className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
+          <p className="text-neutral-500">No campaigns found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCampaigns.map((campaign, index) => (
+            <motion.div
+              key={campaign.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => navigate(`/campaigns/${campaign.id}`)}
+              className="bg-white border rounded-xl p-6 hover:shadow-md cursor-pointer transition-shadow"
             >
-              Create Your First Campaign
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Campaign Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {campaigns.map((campaign) => (
-                <motion.div
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-neutral-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-200 flex flex-col"
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 mb-1">
-                        {campaign.title}
-                      </h3>
-                      {campaign.brand?.name && (
-                        <p className="text-sm text-neutral-500">
-                          by {campaign.brand.name}
-                        </p>
-                      )}
-                    </div>
-                    <Badge className={`${getStatusColor(campaign.status)} shrink-0 h-fit`}>
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                  
-                  {/* Description */}
-                  <div className="text-neutral-600 text-sm mb-4 line-clamp-3 flex-grow min-h-[60px]">
-                    {campaign.description}
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 text-sm mb-4 pb-4 border-b border-neutral-100">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-neutral-400" />
-                      <span className="font-semibold text-neutral-900">
-                        {formatCurrency(campaign.budget || campaign.prizePool)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-neutral-400" />
-                      <span className="text-neutral-600">
-                        {formatDate(campaign.deadline)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Action Button */}
-                  <Button 
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                    className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
-                  >
-                    View Details
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
-            
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-                <p className="text-sm text-neutral-600">
-                  Showing {campaigns.length} of {pagination.total} campaigns
-                </p>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Previous
-                  </Button>
-                  
-                  <span className="px-4 py-2 text-sm text-neutral-600">
-                    Page {pagination.page} of {pagination.totalPages}
+              <div className="flex items-start justify-between mb-4">
+                <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
+                  {campaign.status}
+                </span>
+              </div>
+              
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2 line-clamp-2">
+                {campaign.title}
+              </h3>
+              <p className="text-sm text-neutral-500 mb-4 line-clamp-3">
+                {campaign.description}
+              </p>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {campaign.categoryTags?.slice(0, 3).map((tag) => (
+                  <span key={tag} className="px-2 py-1 text-xs bg-neutral-100 rounded">
+                    {tag}
                   </span>
-                  
-                  <Button
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.totalPages}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next
-                  </Button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
+                  <DollarSign className="w-4 h-4" />
+                  ₹{campaign.budget?.toLocaleString()}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(campaign.endDate).toLocaleDateString()}
                 </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default Campaigns;
+}

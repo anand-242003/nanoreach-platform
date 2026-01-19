@@ -2,29 +2,36 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Loader2, DollarSign, Clock, Filter, Plus } from 'lucide-react';
+import { Loader2, DollarSign, Clock, Filter, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { useToast } from '@/hooks/use-toast';
 
 const MyCampaigns = () => {
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState([]);
+  const [allCampaigns, setAllCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchMyCampaigns();
   }, [filter]);
+
+  useEffect(() => {
+    filterCampaigns();
+  }, [searchQuery, allCampaigns]);
 
   const fetchMyCampaigns = async () => {
     try {
       setLoading(true);
       const params = filter ? { status: filter } : {};
       const { data } = await api.get('/campaigns/my', { params });
+      setAllCampaigns(data.campaigns);
       setCampaigns(data.campaigns);
     } catch (error) {
       toast({
@@ -35,6 +42,20 @@ const MyCampaigns = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterCampaigns = () => {
+    if (!searchQuery.trim()) {
+      setCampaigns(allCampaigns);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    const filtered = allCampaigns.filter(campaign => 
+      campaign.title.toLowerCase().includes(query) ||
+      campaign.description.toLowerCase().includes(query)
+    );
+    setCampaigns(filtered);
   };
 
   const getStatusColor = (status) => {
@@ -98,6 +119,20 @@ const MyCampaigns = () => {
             <Plus className="w-4 h-4" />
             New Campaign
           </Button>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <Input
+              type="text"
+              placeholder="Search your campaigns by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-6 text-base border-neutral-200 focus:border-neutral-900 focus:ring-neutral-900"
+            />
+          </div>
         </div>
         
         <div className="bg-white border border-neutral-200 rounded-2xl p-6 mb-8 shadow-sm">

@@ -1,7 +1,13 @@
 # Dependencies
 node_modules/
-backend/node_modules/
-frontend/node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
 
 # Environment variables
 .env
@@ -9,20 +15,22 @@ frontend/node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
-backend/.env
-frontend/.env
-
-# Uploads (user-generated content)
-backend/uploads/*
-!backend/uploads/.gitkeep
+*.env
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
 
 # OS files
 .DS_Store
@@ -33,34 +41,22 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
-frontend/dist/
-
-# Testing
-coverage/
-.nyc_output/
-
-# Misc
-.cache/
-.temp/
-.tmp/
-FRONTEND_ANALYSIS.md
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Uploads (user uploaded files)
+uploads/
+backend/uploads/
 
 # Prisma
 backend/prisma/migrations/
-!backend/prisma/schema.prisma
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Testing
+coverage/
+
+# Misc
+*.pem
+.vercel
+.turbo

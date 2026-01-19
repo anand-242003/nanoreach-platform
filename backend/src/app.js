@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 import submissionRoutes from './routes/submissionRoutes.js';
+import { authenticate } from './middlewares/authMiddleware.js';
 
 dotenv.config();
 
@@ -43,6 +44,14 @@ app.use('/api/submissions', submissionRoutes);
 
 app.get('/', (_req, res) => {
   res.send('DRK/MTTR API is running');
+});
+
+// Debug endpoint to check auth
+app.get('/api/debug/auth', authenticate, (req, res) => {
+  res.json({
+    authenticated: true,
+    user: req.user
+  });
 });
 
 export default app;
