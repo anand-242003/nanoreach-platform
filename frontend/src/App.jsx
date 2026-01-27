@@ -15,6 +15,9 @@ import EditCampaign from '@/pages/EditCampaign';
 import CampaignSubmissions from '@/pages/CampaignSubmissions';
 import Onboarding from '@/pages/Onboarding';
 import VerificationQueue from '@/pages/admin/VerificationQueue';
+import EscrowManagement from '@/pages/admin/EscrowManagement';
+import PendingPayments from '@/pages/PendingPayments';
+import SubmissionReview from '@/pages/admin/SubmissionReview';
 
 function App() {
   return (
@@ -37,9 +40,11 @@ function App() {
           <Route path="/campaigns/:id" element={<CampaignDetails />} />
           <Route path="/campaigns/:id/edit" element={<EditCampaign />} />
           <Route path="/campaigns/:id/submissions" element={<CampaignSubmissions />} />
-          <Route path="/campaigns/:id/submit" element={<Submissions />} />
           <Route path="/submissions" element={<Submissions />} />
+          <Route path="/payments/pending" element={<PendingPayments />} />
           <Route path="/admin/verifications/:type" element={<VerificationQueue />} />
+          <Route path="/admin/escrow" element={<EscrowManagement />} />
+          <Route path="/admin/submissions/:campaignId" element={<SubmissionReview />} />
         </Route>
       </Routes>
       <Toaster />

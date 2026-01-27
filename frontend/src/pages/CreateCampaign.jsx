@@ -1,282 +1,291 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { 
-  Rocket, 
-  DollarSign, 
-  Calendar, 
-  Sparkles,
-  Lightbulb
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { createCampaign } from '@/store/slices/campaignSlice';
+import axios from 'axios';
+import { ArrowLeft, Loader2, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 
-const campaignSchema = z.object({
-  title: z.string()
-    .min(3, 'Give your campaign a name with at least 3 characters')
-    .max(100, 'Keep it under 100 characters so it\'s easy to remember'),
-  description: z.string()
-    .min(50, 'Help creators understand what you need—add at least 50 characters')
-    .max(2000, 'Try to keep it under 2000 characters'),
-  budget: z.string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: 'Enter a prize pool amount greater than $0'
-    }),
-  deadline: z.string()
-    .refine((val) => {
-      const selectedDate = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return selectedDate > today;
-    }, {
-      message: 'Please pick a date in the future to give creators time to work'
-    })
-});
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-const CreateCampaign = () => {
+const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
+
+export default function CreateCampaign() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  const { loading } = useSelector((state) => state.campaigns);
-  const [daysUntilDeadline, setDaysUntilDeadline] = useState(null);
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(campaignSchema),
-    mode: 'onBlur'
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [campaign, setCampaign] = useState(null);
+  const [paymentInfo, setPaymentInfo] = useState(null);
+  const [copied, setCopied] = useState('');
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    budget: '',
+    endDate: '',
+    categoryTags: [],
+    contentRequirements: '',
+    rules: '',
   });
 
-  const deadlineValue = watch('deadline');
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  useEffect(() => {
-    if (deadlineValue) {
-      const selected = new Date(deadlineValue);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const diffTime = selected - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setDaysUntilDeadline(diffDays > 0 ? diffDays : null);
-    } else {
-      setDaysUntilDeadline(null);
-    }
-  }, [deadlineValue]);
+  const handleCategoryToggle = (category) => {
+    setFormData(prev => ({
+      ...prev,
+      categoryTags: prev.categoryTags.includes(category)
+        ? prev.categoryTags.filter(c => c !== category)
+        : [...prev.categoryTags, category]
+    }));
+  };
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      const campaignData = {
-        title: data.title,
-        description: data.description,
-        prizePool: parseFloat(data.budget),
-        deadline: new Date(data.deadline).toISOString()
-      };
+      const { data: campaignData } = await axios.post(`${API_URL}/campaigns`, formData, { withCredentials: true });
+      setCampaign(campaignData.campaign);
 
-      const result = await dispatch(createCampaign(campaignData)).unwrap();
-      
-      toast({
-        title: '🎉 Campaign launched!',
-        description: 'Creators can now discover and join your campaign.',
-      });
-
-      navigate('/campaigns');
-    } catch (error) {
-      toast({
-        title: 'Something went wrong',
-        description: error || 'Please try again in a moment.',
-        variant: 'destructive'
-      });
+      const { data: escrowData } = await axios.post(
+        `${API_URL}/escrow/campaigns/${campaignData.campaign.id}/create`,
+        {},
+        { withCredentials: true }
+      );
+      setPaymentInfo(escrowData.paymentInstructions);
+      setStep(2);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create campaign');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const suggestions = [
-    'Mention required hashtags',
-    'Specify video length',
-    'Mood board link'
-  ];
+  const handleConfirmPayment = async () => {
+    setLoading(true);
+    setError('');
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12 space-y-3">
-          <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">
-            Let's set up your next campaign
-          </h1>
-          <p className="text-lg text-neutral-600">
-            Fill in the details below, and we'll connect you with the right creators.
-          </p>
+    try {
+      await axios.post(
+        `${API_URL}/escrow/campaigns/${campaign.id}/confirm-payment`,
+        { paymentReference: paymentInfo.reference },
+        { withCredentials: true }
+      );
+      navigate('/campaigns/my');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to confirm payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayLater = async () => {
+    navigate('/campaigns/my');
+  };
+
+  const copyToClipboard = (text, field) => {
+    navigator.clipboard.writeText(text);
+    setCopied(field);
+    setTimeout(() => setCopied(''), 2000);
+  };
+
+  if (step === 2) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-neutral-900">Fund Your Campaign</h1>
+          <p className="text-neutral-500 text-sm mt-1">Pay 25% security deposit to activate</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Section 1: The Basics */}
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-lg font-medium text-neutral-900">
-                Campaign Title
-              </Label>
-              <Input
-                id="title"
-                {...register('title')}
-                placeholder="e.g., Summer Skincare Launch 2026"
-                className={`text-lg h-12 focus-visible:ring-neutral-400 ${
-                  errors.title ? 'border-red-400 focus-visible:ring-red-400' : ''
-                }`}
-              />
-              {errors.title ? (
-                <p className="text-sm text-red-600 mt-2">{errors.title.message}</p>
-              ) : (
-                <p className="text-sm text-neutral-500 mt-2">
-                  Tip: Make it memorable—this is what creators will see first.
-                </p>
-              )}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+            <div>
+              <p className="font-medium text-green-800">Campaign Created</p>
+              <p className="text-sm text-green-700">{campaign?.title}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-6 mb-6">
+          <h2 className="font-semibold mb-4">Payment Details</h2>
+          
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="p-4 bg-blue-50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-blue-700">₹{paymentInfo?.securityDeposit?.toLocaleString()}</p>
+              <p className="text-sm text-blue-600">Security Deposit (25%)</p>
+            </div>
+            <div className="p-4 bg-neutral-50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-neutral-700">₹{paymentInfo?.totalPrizePool?.toLocaleString()}</p>
+              <p className="text-sm text-neutral-600">Total Prize Pool</p>
             </div>
           </div>
 
-          {/* Section 2: The Brief */}
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between">
-                <Label htmlFor="description" className="text-lg font-medium text-neutral-900">
-                  The Brief & Requirements
-                </Label>
-                <Lightbulb className="w-5 h-5 text-amber-500" />
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-3">
-                <span className="text-sm text-neutral-600">Suggestions:</span>
-                {suggestions.map((suggestion, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
-                    className="bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-default"
-                  >
-                    {suggestion}
-                  </Badge>
-                ))}
-              </div>
-
-              <Textarea
-                id="description"
-                {...register('description')}
-                placeholder="Tell creators exactly what you're looking for. Be specific about deliverables, tone, and any must-haves..."
-                className={`min-h-[200px] text-base leading-relaxed focus-visible:ring-neutral-400 ${
-                  errors.description ? 'border-red-400 focus-visible:ring-red-400' : ''
-                }`}
-              />
-              {errors.description ? (
-                <p className="text-sm text-red-600 mt-2">{errors.description.message}</p>
-              ) : (
-                <p className="text-sm text-neutral-500 mt-2">
-                  Tip: Be specific about the deliverables (e.g., "1 TikTok video using our sound"). Creators love clarity.
-                </p>
-              )}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-neutral-50 rounded">
+              <span className="text-sm text-neutral-600">Bank</span>
+              <span className="font-medium">{paymentInfo?.bankName}</span>
             </div>
-          </div>
-
-          {/* Section 3: Logistics */}
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Budget */}
-              <div className="space-y-2">
-                <Label htmlFor="budget" className="text-lg font-medium text-neutral-900">
-                  Total Prize Pool
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-                  <Input
-                    id="budget"
-                    type="number"
-                    step="0.01"
-                    {...register('budget')}
-                    placeholder="5000"
-                    className={`text-lg h-12 pl-10 focus-visible:ring-neutral-400 ${
-                      errors.budget ? 'border-red-400 focus-visible:ring-red-400' : ''
-                    }`}
-                  />
-                </div>
-                {errors.budget ? (
-                  <p className="text-sm text-red-600 mt-2">{errors.budget.message}</p>
-                ) : (
-                  <p className="text-sm text-neutral-500 mt-2">
-                    Tip: Higher budgets attract more creators.
-                  </p>
-                )}
+            <div className="flex justify-between items-center p-3 bg-neutral-50 rounded">
+              <span className="text-sm text-neutral-600">Account</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono">{paymentInfo?.accountNumber}</span>
+                <button onClick={() => copyToClipboard(paymentInfo?.accountNumber, 'account')} className="p-1 hover:bg-neutral-200 rounded">
+                  <Copy className="w-4 h-4" />
+                </button>
               </div>
-
-              {/* Deadline */}
-              <div className="space-y-2">
-                <Label htmlFor="deadline" className="text-lg font-medium text-neutral-900">
-                  Submission Deadline
-                </Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none" />
-                  <Input
-                    id="deadline"
-                    type="date"
-                    {...register('deadline')}
-                    className={`text-lg h-12 pl-10 focus-visible:ring-neutral-400 ${
-                      errors.deadline ? 'border-red-400 focus-visible:ring-red-400' : ''
-                    }`}
-                  />
-                </div>
-                {errors.deadline ? (
-                  <p className="text-sm text-red-600 mt-2">{errors.deadline.message}</p>
-                ) : daysUntilDeadline ? (
-                  <div className="mt-2">
-                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                      That gives creators {daysUntilDeadline} {daysUntilDeadline === 1 ? 'day' : 'days'} to submit
-                    </Badge>
-                  </div>
-                ) : (
-                  <p className="text-sm text-neutral-500 mt-2">
-                    Tip: Give creators at least 7-14 days for quality work.
-                  </p>
-                )}
+            </div>
+            <div className="flex justify-between items-center p-3 bg-neutral-50 rounded">
+              <span className="text-sm text-neutral-600">IFSC</span>
+              <span className="font-mono">{paymentInfo?.ifsc}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-blue-50 border border-blue-200 rounded">
+              <span className="text-sm text-blue-700">Reference</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold font-mono text-blue-700">{paymentInfo?.reference}</span>
+                <button onClick={() => copyToClipboard(paymentInfo?.reference, 'ref')} className="p-1 hover:bg-blue-100 rounded">
+                  <Copy className="w-4 h-4 text-blue-600" />
+                </button>
               </div>
             </div>
           </div>
+          {copied && <p className="text-sm text-green-600 mt-2">Copied!</p>}
+        </div>
 
-          {/* Submit Button */}
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 text-lg font-semibold bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3"
-            >
-              {loading ? (
-                <>
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  Launching...
-                </>
-              ) : (
-                <>
-                  <Rocket className="w-5 h-5" />
-                  Publish Campaign
-                </>
-              )}
-            </Button>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Important</p>
+              <p>Include the reference in payment remarks. Security deposit is refunded after prizes are distributed.</p>
+            </div>
           </div>
-        </form>
+        </div>
 
-        {/* Footer Note */}
-        <p className="text-center text-sm text-neutral-500 mt-8">
-          You can edit or pause your campaign anytime from the dashboard.
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
+        )}
+
+        <div className="flex gap-4">
+          <button
+            onClick={handlePayLater}
+            className="flex-1 py-3 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50"
+          >
+            Pay Later
+          </button>
+          <button onClick={handleConfirmPayment} disabled={loading}
+            className="flex-1 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            I've Made Payment
+          </button>
+        </div>
+
+        <p className="text-xs text-center text-neutral-500 mt-4">
+          Campaign will remain in DRAFT status until payment is verified
         </p>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm hover:text-neutral-900">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-neutral-900">Create Campaign</h1>
+        <p className="text-neutral-500 text-sm mt-1">Fill in the details to create a new campaign</p>
+      </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white border rounded-lg p-6 space-y-4">
+          <h2 className="font-semibold">Basic Information</h2>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Title *</label>
+            <input type="text" name="title" value={formData.title} onChange={handleChange} required
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              placeholder="Campaign title" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Description *</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} required rows={4}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              placeholder="Describe your campaign..." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Total Prize Pool (₹) *</label>
+              <input type="number" name="budget" value={formData.budget} onChange={handleChange} required min="1000"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                placeholder="100000" />
+              {formData.budget && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Security deposit: ₹{Math.round(formData.budget * 0.25).toLocaleString()} (25%)
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">End Date *</label>
+              <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} required
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-6">
+          <h2 className="font-semibold mb-4">Categories</h2>
+          <div className="flex flex-wrap gap-2">
+            {categories.map(category => (
+              <button key={category} type="button" onClick={() => handleCategoryToggle(category)}
+                className={`px-3 py-1 rounded-lg text-sm border ${
+                  formData.categoryTags.includes(category)
+                    ? 'bg-neutral-900 text-white border-neutral-900'
+                    : 'bg-white text-neutral-600 border-neutral-300 hover:border-neutral-400'
+                }`}>
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-6 space-y-4">
+          <h2 className="font-semibold">Requirements</h2>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Content Requirements</label>
+            <textarea name="contentRequirements" value={formData.contentRequirements} onChange={handleChange} rows={3}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              placeholder="What kind of content do you expect?" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Rules</label>
+            <textarea name="rules" value={formData.rules} onChange={handleChange} rows={3}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              placeholder="Campaign rules..." />
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <button type="button" onClick={() => navigate(-1)} className="flex-1 py-3 border rounded-lg hover:bg-neutral-50">
+            Cancel
+          </button>
+          <button type="submit" disabled={loading}
+            className="flex-1 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Creating...</> : 'Create Campaign'}
+          </button>
+        </div>
+      </form>
     </div>
   );
-};
-
-export default CreateCampaign;
+}

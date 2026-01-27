@@ -1,17 +1,28 @@
-import express from 'express';
-import { 
-  createSubmission, 
+import express from "express";
+import { protect, requireInfluencer, requireAdmin } from "../middlewares/authMiddleware.js";
+import {
+  createSubmission,
   getMySubmissions,
-  updateSubmissionStatus
-} from '../controllers/submissionController.js';
-import { authenticate, authorize } from '../middlewares/authMiddleware.js';
+  getCampaignSubmissions,
+  scoreSubmission,
+  getCampaignLeaderboard,
+  getSubmissionWindowStatus,
+  revealLeaderboard,
+  getInfluencerFeedback,
+} from "../controllers/submissionController.js";
 
 const router = express.Router();
 
-router.post('/', authenticate, authorize('CREATOR'), createSubmission);
+// Influencer routes
+router.post("/", protect, requireInfluencer, createSubmission);
+router.get("/my", protect, requireInfluencer, getMySubmissions);
+router.get("/campaign/:campaignId/window", protect, requireInfluencer, getSubmissionWindowStatus);
+router.get("/campaign/:campaignId/leaderboard", protect, getCampaignLeaderboard);
+router.get("/campaign/:campaignId", protect, getCampaignSubmissions);
+router.get("/:submissionId/feedback", protect, requireInfluencer, getInfluencerFeedback);
 
-router.get('/my', authenticate, authorize('CREATOR'), getMySubmissions);
-
-router.patch('/:id/status', authenticate, authorize('BRAND'), updateSubmissionStatus);
+// Admin routes
+router.post("/:submissionId/score", protect, requireAdmin, scoreSubmission);
+router.post("/campaign/:campaignId/reveal", protect, requireAdmin, revealLeaderboard);
 
 export default router;

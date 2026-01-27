@@ -108,7 +108,7 @@ export default function VerificationQueue() {
         <div className="text-center py-12 bg-white rounded-xl border">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <p className="text-neutral-500 text-lg">No pending verifications</p>
-          <p className="text-neutral-400 text-sm mt-1">All caught up! 🎉</p>
+          {/* <p className="text-neutral-400 text-sm mt-1">All caught up!</p> */}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

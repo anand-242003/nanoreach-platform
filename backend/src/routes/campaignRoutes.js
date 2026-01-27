@@ -1,16 +1,21 @@
 import express from "express";
-import { createCampaign, getAllCampaigns, getCampaignById, getMyCampaigns, updateCampaign } from "../controllers/campaignController.js";
-import { authenticate, authorize } from "../middlewares/authMiddleware.js";
-import { getCampaignSubmissions } from "../controllers/submissionController.js";
+import { protect, requireBrand } from "../middlewares/authMiddleware.js";
+import {
+  getAllCampaigns,
+  getMyCampaigns,
+  getCampaignById,
+  createCampaign,
+  updateCampaign,
+  deleteCampaign,
+} from "../controllers/campaignController.js";
 
 const router = express.Router();
 
-router.get("/", getAllCampaigns);
-router.get("/my", authenticate, authorize("BRAND"), getMyCampaigns);
-router.get("/:id", getCampaignById);
-router.get("/:id/submissions", authenticate, authorize("BRAND"), getCampaignSubmissions);
-
-router.post("/", authenticate, authorize("BRAND"), createCampaign);
-router.put("/:id", authenticate, authorize("BRAND"), updateCampaign);
+router.get("/", protect, getAllCampaigns);
+router.get("/my", protect, requireBrand, getMyCampaigns);
+router.get("/:id", protect, getCampaignById);
+router.post("/", protect, requireBrand, createCampaign);
+router.put("/:id", protect, requireBrand, updateCampaign);
+router.delete("/:id", protect, requireBrand, deleteCampaign);
 
 export default router;

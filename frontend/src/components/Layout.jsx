@@ -2,8 +2,8 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '@/store/authSlice';
 import { 
-  Home, Target, FileText, Settings, LogOut, Menu, X,
-  Users, CheckCircle, Building2, Sparkles, Plus
+  Home, Target, FileText, LogOut, Menu, X,
+  Building2, Sparkles, Plus, DollarSign
 } from 'lucide-react';
 import { useState } from 'react';
 import VerificationBanner from './VerificationBanner';
@@ -17,7 +17,6 @@ export default function Layout() {
 
   const isAdmin = user?.role === 'ADMIN';
   const isBrand = user?.role === 'BRAND';
-  const isInfluencer = user?.role === 'INFLUENCER';
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -28,19 +27,22 @@ export default function Layout() {
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/verifications/influencers', icon: Sparkles, label: 'Influencer Verifications' },
     { to: '/admin/verifications/brands', icon: Building2, label: 'Brand Verifications' },
+    { to: '/admin/escrow', icon: DollarSign, label: 'Escrow Management' },
     { to: '/campaigns', icon: Target, label: 'All Campaigns' },
+    { to: '/admin/submissions', icon: FileText, label: 'Submission Reviews' }, // Added link for submission reviews
   ];
 
   const brandLinks = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/campaigns/my', icon: Target, label: 'My Campaigns' },
     { to: '/campaigns/create', icon: Plus, label: 'Create Campaign' },
+    { to: '/payments/pending', icon: DollarSign, label: 'Pending Payments' },
   ];
 
   const influencerLinks = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/campaigns', icon: Target, label: 'Browse Campaigns' },
-    { to: '/submissions', icon: FileText, label: 'My Submissions' },
+    { to: '/submissions', icon: FileText, label: 'My Activity' },
   ];
 
   const links = isAdmin ? adminLinks : isBrand ? brandLinks : influencerLinks;
@@ -73,7 +75,7 @@ export default function Layout() {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {links.map((link) => {
-              const isActive = location.pathname === link.to;
+              const isActive = location.pathname === link.to || location.pathname.startsWith(link.to + '/');
               return (
                 <Link
                   key={link.to}
@@ -86,7 +88,7 @@ export default function Layout() {
                   }`}
                 >
                   <link.icon className="w-5 h-5" />
-                  <span className="font-medium">{link.label}</span>
+                  <span className="font-medium text-sm">{link.label}</span>
                 </Link>
               );
             })}
@@ -108,7 +110,7 @@ export default function Layout() {
               className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium">Logout</span>
+              <span className="font-medium text-sm">Logout</span>
             </button>
           </div>
         </div>

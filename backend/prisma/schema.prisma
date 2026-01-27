@@ -33,6 +33,7 @@ enum ApplicationStatus {
 
 enum EscrowStatus {
   PENDING
+  PAYMENT_PENDING
   FUNDED
   RELEASED
   REFUNDED
@@ -69,9 +70,9 @@ model User {
 }
 
 model InfluencerProfile {
-  id                String            @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String            @unique @db.ObjectId
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String             @unique @db.ObjectId
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName       String
   bio               String?
   profileImage      String?
@@ -84,66 +85,71 @@ model InfluencerProfile {
   verificationNotes String?
   verifiedAt        DateTime?
   verifiedBy        String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   applications      Application[]
   influencerReports InfluencerReport[]
 }
 
 model BrandProfile {
-  id               String       @id @default(auto()) @map("_id") @db.ObjectId
-  userId           String       @unique @db.ObjectId
-  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyName      String
-  logo             String?
-  website          String?
-  industry         String?
-  gstNumber        String?
-  panNumber        String?
-  businessDocument String?
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String        @unique @db.ObjectId
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName       String
+  logo              String?
+  website           String?
+  industry          String?
+  gstNumber         String?
+  panNumber         String?
+  businessDocument  String?
   verificationNotes String?
-  verifiedAt       DateTime?
-  verifiedBy       String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  brandReports     BrandReport[]
+  verifiedAt        DateTime?
+  verifiedBy        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  brandReports      BrandReport[]
 }
 
 model Campaign {
-  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
-  title              String
-  description        String
-  startDate          DateTime
-  endDate            DateTime
-  budget             Float
-  status             CampaignStatus     @default(DRAFT)
-  categoryTags       String[]
-  contentRequirements String
-  rules              String
-  resultsDate        DateTime?
-  evaluationCriteria Json?
-  prizeDistribution  Json?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  brandId            String             @db.ObjectId
-  brand              User               @relation(fields: [brandId], references: [id])
-  submissions        Submission[]
-  escrow             Escrow?
-  applications       Application[]
-  referralLinks      ReferralLink[]
-  leaderboard        LeaderboardEntry[]
-  brandReports       BrandReport[]
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  description         String
+  startDate           DateTime
+  endDate             DateTime
+  budget              Float
+  status              CampaignStatus     @default(DRAFT)
+  categoryTags        String[]
+  contentRequirements String?
+  rules               String?
+  resultsDate         DateTime?
+  evaluationCriteria  Json?
+  prizeDistribution   Json?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  brandId             String             @db.ObjectId
+  brand               User               @relation(fields: [brandId], references: [id])
+  submissions         Submission[]
+  escrow              Escrow?
+  applications        Application[]
+  referralLinks       ReferralLink[]
+  leaderboard         LeaderboardEntry[]
+  brandReports        BrandReport[]
 }
 
 model Escrow {
-  id               String      @id @default(auto()) @map("_id") @db.ObjectId
-  campaignId       String      @unique @db.ObjectId
-  campaign         Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  amount           Float
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId       String       @unique @db.ObjectId
+  campaign         Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  amount           Float        // Security deposit (25%)
+  totalPrizePool   Float?       // Total prize pool
   status           EscrowStatus @default(PENDING)
   paymentReference String?
+  paymentMethod    String?
   fundedAt         DateTime?
   releasedAt       DateTime?
+  verifiedBy       String?
+  notes            String?
+  releaseDetails   Json?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 }
@@ -164,23 +170,24 @@ model Application {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   referralLink      ReferralLink?
+
   @@unique([campaignId, influencerId])
 }
 
 model ReferralLink {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  uniqueCode  String   @unique
-  url         String   @unique
-  campaignId  String   @db.ObjectId
-  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  applicationId String @unique @db.ObjectId
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  totalClicks Int      @default(0)
-  uniqueClicks Int     @default(0)
-  conversions Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  clicks      Click[]
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueCode    String      @unique
+  url           String      @unique
+  campaignId    String      @db.ObjectId
+  campaign      Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  applicationId String      @unique @db.ObjectId
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  totalClicks   Int         @default(0)
+  uniqueClicks  Int         @default(0)
+  conversions   Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  clicks        Click[]
 }
 
 model Click {
@@ -216,21 +223,22 @@ model Submission {
 }
 
 model LeaderboardEntry {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
-  campaignId      String    @db.ObjectId
-  campaign        Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  submissionId    String    @unique @db.ObjectId
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId      String     @db.ObjectId
+  campaign        Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  submissionId    String     @unique @db.ObjectId
   submission      Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  engagementScore Float     @default(0)
-  referralScore   Float     @default(0)
-  qualityScore    Float     @default(0)
-  totalScore      Float     @default(0)
+  engagementScore Float      @default(0)
+  referralScore   Float      @default(0)
+  qualityScore    Float      @default(0)
+  totalScore      Float      @default(0)
   rank            Int?
   prizeAmount     Float?
   scoreBreakdown  Json?
-  isRevealed      Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  isRevealed      Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
   @@unique([campaignId, submissionId])
 }
 
@@ -239,36 +247,34 @@ model InfluencerReport {
   influencerProfileId String            @db.ObjectId
   influencerProfile   InfluencerProfile @relation(fields: [influencerProfileId], references: [id], onDelete: Cascade)
   campaignId          String            @db.ObjectId
-  performanceScore    Float
-  engagementBreakdown Json
-  referralPerformance Json
-  contentQuality      Float
+  contentQuality      Float?
+  referralPerformance Json?
   suggestions         String[]
   generatedAt         DateTime          @default(now())
 }
 
 model BrandReport {
-  id                 String     @id @default(auto()) @map("_id") @db.ObjectId
-  brandProfileId     String     @db.ObjectId
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  brandProfileId     String       @db.ObjectId
   brandProfile       BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
-  campaignId         String     @db.ObjectId
-  campaign           Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  totalReach         Int
-  totalEngagement    Int
-  totalReferrals     Int
-  totalConversions   Int
-  attributionData    Json
+  campaignId         String       @db.ObjectId
+  campaign           Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  totalReach         Int?
+  totalEngagement    Int?
+  totalReferrals     Int?
+  totalConversions   Int?
+  attributionData    Json?
   costPerAcquisition Float?
   roi                Float?
-  topPerformers      Json
+  topPerformers      Json?
   insights           String[]
-  generatedAt        DateTime   @default(now())
+  generatedAt        DateTime     @default(now())
 }
 
 model AdminAction {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
-  performedBy   String  @db.ObjectId
-  admin         User    @relation(fields: [performedBy], references: [id])
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  performedBy   String   @db.ObjectId
+  admin         User     @relation(fields: [performedBy], references: [id])
   actionType    String
   targetType    String
   targetId      String

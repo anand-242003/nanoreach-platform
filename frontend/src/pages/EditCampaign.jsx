@@ -1,197 +1,156 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { fetchCampaignById, updateCampaign } from '@/store/slices/campaignSlice';
 
-const campaignSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().min(50, 'Description must be at least 50 characters'),
-  prizePool: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: 'Prize pool must be greater than 0'
-  }),
-  deadline: z.string().refine((val) => new Date(val) > new Date(), {
-    message: 'Deadline must be in the future'
-  })
-});
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-const EditCampaign = () => {
+export default function EditCampaign() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  const { currentCampaign, loading } = useSelector((state) => state.campaigns);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(campaignSchema),
-    mode: 'onBlur'
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    budget: '',
+    endDate: '',
+    contentRequirements: '',
+    rules: '',
+    status: 'DRAFT',
   });
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchCampaignById(id));
-    }
-  }, [id, dispatch]);
+    fetchCampaign();
+  }, [id]);
 
-  useEffect(() => {
-    if (currentCampaign) {
-      reset({
-        title: currentCampaign.title,
-        description: currentCampaign.description,
-        prizePool: currentCampaign.prizePool.toString(),
-        deadline: new Date(currentCampaign.deadline).toISOString().split('T')[0]
-      });
-    }
-  }, [currentCampaign, reset]);
-
-  const onSubmit = async (data) => {
+  const fetchCampaign = async () => {
     try {
-      const updates = {
-        title: data.title,
-        description: data.description,
-        prizePool: parseFloat(data.prizePool),
-        deadline: new Date(data.deadline).toISOString()
-      };
-
-      await dispatch(updateCampaign({ id, updates })).unwrap();
-      
-      toast({
-        title: 'Campaign Updated',
-        description: 'Your changes have been saved successfully',
+      const { data } = await axios.get(`${API_URL}/campaigns/${id}`, { withCredentials: true });
+      const campaign = data.campaign || data;
+      setFormData({
+        title: campaign.title || '',
+        description: campaign.description || '',
+        budget: campaign.budget || '',
+        endDate: campaign.endDate ? campaign.endDate.split('T')[0] : '',
+        contentRequirements: campaign.contentRequirements || '',
+        rules: campaign.rules || '',
+        status: campaign.status || 'DRAFT',
       });
-
-      navigate(`/campaigns/${id}`);
     } catch (error) {
-      toast({
-        title: 'Update Failed',
-        description: error || 'Please try again',
-        variant: 'destructive'
-      });
+      setError('Failed to load campaign');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading || !currentCampaign) {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+
+    try {
+      await axios.put(`${API_URL}/campaigns/${id}`, formData, { withCredentials: true });
+      navigate(`/campaigns/${id}`);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update campaign');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <Button
-          onClick={() => navigate(`/campaigns/${id}`)}
-          variant="outline"
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Campaign
-        </Button>
+    <div className="p-6 max-w-3xl mx-auto">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">Edit Campaign</h1>
-          <p className="text-neutral-600 mt-2">Update your campaign details</p>
+      <h1 className="text-2xl font-bold text-neutral-900 mb-8">Edit Campaign</h1>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
         </div>
+      )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8">
-            <Label htmlFor="title" className="text-lg font-medium text-neutral-900 mb-3 block">
-              Campaign Title
-            </Label>
-            <Input
-              id="title"
-              {...register('title')}
-              className="text-lg h-12"
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white border rounded-lg p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
             />
-            {errors.title && (
-              <p className="text-sm text-red-600 mt-2">{errors.title.message}</p>
-            )}
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8">
-            <Label htmlFor="description" className="text-lg font-medium text-neutral-900 mb-3 block">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              {...register('description')}
-              className="min-h-[200px] text-base"
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
             />
-            {errors.description && (
-              <p className="text-sm text-red-600 mt-2">{errors.description.message}</p>
-            )}
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="prizePool" className="text-lg font-medium text-neutral-900 mb-3 block">
-                  Prize Pool ($)
-                </Label>
-                <Input
-                  id="prizePool"
-                  type="number"
-                  {...register('prizePool')}
-                  className="text-lg h-12"
-                />
-                {errors.prizePool && (
-                  <p className="text-sm text-red-600 mt-2">{errors.prizePool.message}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="deadline" className="text-lg font-medium text-neutral-900 mb-3 block">
-                  Deadline
-                </Label>
-                <Input
-                  id="deadline"
-                  type="date"
-                  {...register('deadline')}
-                  className="text-lg h-12"
-                />
-                {errors.deadline && (
-                  <p className="text-sm text-red-600 mt-2">{errors.deadline.message}</p>
-                )}
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Budget (₹)</label>
+              <input
+                type="number"
+                name="budget"
+                value={formData.budget}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              >
+                <option value="DRAFT">Draft</option>
+                <option value="ACTIVE">Active</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate(`/campaigns/${id}`)}
-              className="flex-1 h-12"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="flex-1 h-12 bg-neutral-900 hover:bg-neutral-800"
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
-      </div>
+        <div className="flex gap-4">
+          <button type="button" onClick={() => navigate(-1)} className="flex-1 py-3 border rounded-lg hover:bg-neutral-50">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex-1 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
     </div>
   );
-};
-
-export default EditCampaign;
+}

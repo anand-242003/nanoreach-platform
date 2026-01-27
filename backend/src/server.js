@@ -15,12 +15,13 @@ import influencerRoutes from "./routes/influencerRoutes.js";
 import brandRoutes from "./routes/brandRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import escrowRoutes from "./routes/escrowRoutes.js";
+import referralRoutes from "./routes/referralRoutes.js";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
 
 // Security
@@ -31,11 +32,10 @@ app.use(cors({
 }));
 
 // Rate limiting
-const limiter = rateLimit({
+app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-app.use(limiter);
+  max: 200,
+}));
 
 // Body parsing
 app.use(express.json());
@@ -54,16 +54,16 @@ app.use("/api/influencer", influencerRoutes);
 app.use("/api/brand", brandRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/escrow", escrowRoutes);
+app.use("/api/referral", referralRoutes);
 
 // Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
+  console.error(err);
+  res.status(500).json({ message: "Error" });
 });
 
 const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL', 'PORT'];
@@ -85,7 +85,7 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV}`);
 });
 
 

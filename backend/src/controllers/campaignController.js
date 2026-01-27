@@ -1,77 +1,5 @@
 import prisma from "../config/db.js";
 
-export const createCampaign = async (req, res) => {
-  try {
-    let { title, description, prizePool, deadline } = req.body;
-
-    title = title?.trim();
-    description = description?.trim();
-
-    if (!title || !description || !prizePool || !deadline) {
-      return res.status(400).json({ message: "All fields are required: title, description, prizePool, deadline" });
-    }
-
-    if (title.length < 3 || title.length > 200) {
-      return res.status(400).json({ message: "Title must be between 3 and 200 characters" });
-    }
-
-    if (description.length < 10 || description.length > 5000) {
-      return res.status(400).json({ message: "Description must be between 10 and 5000 characters" });
-    }
-
-    const prizePoolNum = parseInt(prizePool);
-    if (isNaN(prizePoolNum) || prizePoolNum < 0) {
-      return res.status(400).json({ message: "Prize pool must be a positive number" });
-    }
-
-    const deadlineDate = new Date(deadline);
-    if (isNaN(deadlineDate.getTime())) {
-      return res.status(400).json({ message: "Invalid deadline format" });
-    }
-    if (deadlineDate <= new Date()) {
-      return res.status(400).json({ message: "Deadline must be in the future" });
-    }
-
-    const campaign = await prisma.campaign.create({
-      data: {
-        title,
-        description,
-        prizePool: prizePoolNum,
-        deadline: deadlineDate,
-        brandId: req.user.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        prizePool: true,
-        deadline: true,
-        status: true,
-        createdAt: true,
-        brand: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    res.status(201).json({
-      message: "Campaign created successfully",
-      campaign,
-    });
-  } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error("Create Campaign Error:", error.message);
-    } else {
-        console.error("Create Campaign Error:", error);
-    }
-    res.status(500).json({ message: "Server error while creating campaign" });
-  }
-};
-
 export const getAllCampaigns = async (req, res) => {
   try {
     const { page = 1, limit = 100, status = "ACTIVE" } = req.query;
@@ -125,6 +53,45 @@ export const getAllCampaigns = async (req, res) => {
   }
 };
 
+export const getMyCampaigns = async (req, res) => {
+  try {
+    const { status } = req.query;
+    const brandId = req.user.id;
+
+    const where = { brandId };
+    if (status) {
+      where.status = status;
+    }
+
+    const campaigns = await prisma.campaign.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        budget: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        categoryTags: true,
+        createdAt: true,
+        _count: {
+          select: {
+            applications: true,
+            submissions: true,
+          },
+        },
+      },
+    });
+
+    res.json({ campaigns });
+  } catch (error) {
+    console.error("Get My Campaigns Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const getCampaignById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -169,128 +136,113 @@ export const getCampaignById = async (req, res) => {
     res.json({ campaign });
   } catch (error) {
     console.error("Get Campaign Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-export const getMyCampaigns = async (req, res) => {
+export const createCampaign = async (req, res) => {
   try {
-    const brandId = req.user.id;
-    
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    const status = req.query.status;
-    
-    page = Math.max(1, Math.min(page, 1000));  
-    limit = Math.max(1, Math.min(limit, 100)); 
-    const skip = (page - 1) * limit;
+    const {
+      title,
+      description,
+      budget,
+      startDate,
+      endDate,
+      categoryTags,
+      contentRequirements,
+      rules,
+      resultsDate,
+      evaluationCriteria,
+      prizeDistribution,
+    } = req.body;
 
-    const where = { brandId };
-    if (status) {
-      where.status = status;
+    const brandId = req.user.id;
+
+    if (!title || !description || !budget || !endDate) {
+      return res.status(400).json({ message: "Title, description, budget, and end date are required" });
     }
 
-    const campaigns = await prisma.campaign.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        prizePool: true,
-        deadline: true,
-        status: true,
-        createdAt: true,
-        brand: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+    const campaign = await prisma.campaign.create({
+      data: {
+        title,
+        description,
+        budget: parseFloat(budget),
+        startDate: startDate ? new Date(startDate) : new Date(),
+        endDate: new Date(endDate),
+        categoryTags: categoryTags || [],
+        contentRequirements,
+        rules,
+        resultsDate: resultsDate ? new Date(resultsDate) : null,
+        evaluationCriteria: evaluationCriteria || {},
+        prizeDistribution: prizeDistribution || [],
+        status: 'DRAFT',
+        brandId,
       },
     });
 
-    const total = await prisma.campaign.count({ where });
-
-    res.json({
-      campaigns,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+    res.status(201).json({
+      message: "Campaign created successfully",
+      campaign,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error("Get My Campaigns Error:", error.message);
-    } else {
-        console.error("Get My Campaigns Error:", error);
-    }
-    res.status(500).json({ message: "Server error while fetching campaigns" });
+    console.error("Create Campaign Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const updateCampaign = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, prizePool, deadline } = req.body;
+    const brandId = req.user.id;
+    const updateData = req.body;
 
-    const campaign = await prisma.campaign.findUnique({
-      where: { id },
-      select: { brandId: true }
-    });
+    const campaign = await prisma.campaign.findUnique({ where: { id } });
 
     if (!campaign) {
       return res.status(404).json({ message: "Campaign not found" });
     }
 
-    if (campaign.brandId !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to update this campaign" });
+    if (campaign.brandId !== brandId) {
+      return res.status(403).json({ message: "Not authorized" });
     }
 
-    const updates = {};
-    if (title) updates.title = title.trim();
-    if (description) updates.description = description.trim();
-    if (prizePool) updates.prizePool = parseInt(prizePool);
-    if (deadline) updates.deadline = new Date(deadline);
+    if (updateData.budget) updateData.budget = parseFloat(updateData.budget);
+    if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
+    if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
+    if (updateData.resultsDate) updateData.resultsDate = new Date(updateData.resultsDate);
 
     const updatedCampaign = await prisma.campaign.update({
       where: { id },
-      data: updates,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        prizePool: true,
-        deadline: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        brand: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      data: updateData,
     });
 
-    res.json({
-      message: "Campaign updated successfully",
-      campaign: updatedCampaign
-    });
+    res.json({ message: "Campaign updated", campaign: updatedCampaign });
   } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error("Update Campaign Error:", error.message);
-    } else {
-        console.error("Update Campaign Error:", error);
+    console.error("Update Campaign Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteCampaign = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const brandId = req.user.id;
+
+    const campaign = await prisma.campaign.findUnique({ where: { id } });
+
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
     }
-    res.status(500).json({ message: "Server error while updating campaign" });
+
+    if (campaign.brandId !== brandId) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await prisma.campaign.delete({ where: { id } });
+
+    res.json({ message: "Campaign deleted" });
+  } catch (error) {
+    console.error("Delete Campaign Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
