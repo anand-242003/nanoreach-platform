@@ -11,11 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const PLATFORMS = [
   { value: 'YOUTUBE', label: 'YouTube', icon: '▶️' },
-  { value: 'INSTAGRAM', label: 'Instagram', icon: '' },
-  { value: 'TIKTOK', label: 'TikTok', icon: '' },
-  { value: 'TWITTER', label: 'Twitter/X', icon: '' },
-  { value: 'FACEBOOK', label: 'Facebook', icon: '' },
-  { value: 'LINKEDIN', label: 'LinkedIn', icon: '' },
+  { value: 'INSTAGRAM', label: 'Instagram', icon: '📷' },
+  { value: 'TIKTOK', label: 'TikTok', icon: '🎵' },
+  { value: 'TWITTER', label: 'Twitter/X', icon: '🐦' },
+  { value: 'FACEBOOK', label: 'Facebook', icon: '👥' },
+  { value: 'LINKEDIN', label: 'LinkedIn', icon: '💼' },
 ];
 
 const CONTENT_TYPES = {
@@ -63,7 +63,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
   }, [open, campaignId]);
 
   useEffect(() => {
-    
+    // Update content type when platform changes
     const availableTypes = CONTENT_TYPES[socialPlatform];
     if (availableTypes && !availableTypes.find(t => t.value === contentType)) {
       setContentType(availableTypes[0].value);
@@ -152,7 +152,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
 
   const availableContentTypes = CONTENT_TYPES[socialPlatform] || [];
 
-  const availableContentTypes = CONTENT_TYPES[socialPlatform] || [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -164,7 +163,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
           <DialogTitle>Submit Your Work</DialogTitle>
         </DialogHeader>
 
-        {}
+        {/* Referral Link Reminder */}
         {referralLink && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
             <div className="flex items-start gap-2">
@@ -184,7 +183,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
         )}
 
         <form onSubmit={onSubmit} className="space-y-4">
-          {}
+          {/* Platform Selector */}
           <div className="space-y-2">
             <Label>Social Platform *</Label>
             <Select value={socialPlatform} onValueChange={setSocialPlatform}>
@@ -207,7 +206,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
             )}
           </div>
 
-          {}
+          {/* Content Type Selector */}
           <div className="space-y-2">
             <Label>Content Type *</Label>
             <Select value={contentType} onValueChange={setContentType}>
@@ -227,13 +226,13 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
             )}
           </div>
 
-          {}
+          {/* Content URL */}
           <div className="space-y-2">
             <Label>Content Link *</Label>
             <div className="relative">
               <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder={`https:
+                placeholder={`https://${socialPlatform.toLowerCase()}.com/...`}
                 className="pl-10" 
                 value={contentUrl}
                 onChange={(e) => setContentUrl(e.target.value)}
@@ -247,7 +246,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
             </p>
           </div>
 
-          {}
+          {/* Optional Message */}
           <div className="space-y-2">
             <Label>Additional Notes (Optional)</Label>
             <Textarea 
