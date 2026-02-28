@@ -5,7 +5,6 @@ import TrustedBy from '@/components/landing/TrustedBy';
 import Features from '@/components/landing/Features';
 import HowItWorks from '@/components/landing/HowItWorks';
 import LiveCampaigns from '@/components/landing/LiveCampaigns';
-import CTA from '@/components/landing/CTA';
 import Footer from '@/components/landing/Footer';
 
 export default function Landing() {
@@ -18,7 +17,6 @@ export default function Landing() {
         <Features />
         <HowItWorks />
         <LiveCampaigns />
-        <CTA />
         <Footer />
       </div>
   );

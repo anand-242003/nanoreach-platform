@@ -41,7 +41,6 @@ const FraudAlertsDashboard = ({ campaignFilter }) => {
       
       setAlerts(filteredAlerts);
     } catch (error) {
-      console.error('Failed to fetch fraud alerts:', error);
     } finally {
       setLoading(false);
     }
@@ -59,7 +58,6 @@ const FraudAlertsDashboard = ({ campaignFilter }) => {
       setSelectedAlert(null);
       setReviewNotes('');
     } catch (error) {
-      console.error('Failed to review alert:', error);
       alert('Failed to review fraud alert');
     } finally {
       setReviewing(false);

@@ -20,7 +20,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
       const response = await axios.get(`/api/referral/my/${campaignId}`);
       setReferralData(response.data);
     } catch (error) {
-      console.error('Error fetching referral link:', error);
     } finally {
       setLoading(false);
     }
@@ -36,7 +35,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
         campaign: referralData?.campaign
       });
     } catch (error) {
-      console.error('Error generating referral link:', error);
       alert(error.response?.data?.message || 'Failed to generate referral link');
     } finally {
       setGenerating(false);
@@ -51,7 +49,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
     }
   };
 
@@ -64,7 +61,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
         analytics: response.data.analytics
       }));
     } catch (error) {
-      console.error('Error fetching stats:', error);
     }
   };
 
@@ -118,7 +114,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
 
   return (
     <div className="space-y-4">
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Your Referral Link</CardTitle>
@@ -166,7 +161,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
         </CardContent>
       </Card>
 
-      {}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -210,7 +204,6 @@ const ReferralLinkComponent = ({ campaignId, applicationId }) => {
         </div>
       )}
 
-      {}
       {analytics && (
         <Card>
           <CardHeader>

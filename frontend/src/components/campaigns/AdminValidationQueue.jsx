@@ -41,7 +41,6 @@ const AdminValidationQueue = ({ campaignFilter }) => {
       const response = await axios.get('/api/submissions/admin/pending', { params });
       setSubmissions(response.data.submissions);
     } catch (error) {
-      console.error('Error fetching submissions:', error);
       toast({
         title: 'Error',
         description: 'Failed to load pending submissions',
@@ -251,7 +250,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
         });
       }
     } catch (error) {
-      console.error('Error saving metrics:', error);
     }
   };
 
@@ -291,7 +289,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
       </DialogHeader>
 
       <div className="space-y-6">
-        {}
         <div className="space-y-2">
           <Label>Content Link</Label>
           <div className="flex items-center gap-2">
@@ -307,7 +304,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
           </div>
         </div>
 
-        {}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-muted-foreground">Platform</Label>
@@ -319,7 +315,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
           </div>
         </div>
 
-        {}
         <div className="space-y-2">
           <Label>Action</Label>
           <Select value={action} onValueChange={setAction}>
@@ -335,7 +330,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
 
         {action === 'validate' ? (
           <>
-            {}
             <div className="space-y-3">
               <Label>Content Metrics (Optional)</Label>
               <div className="grid grid-cols-2 gap-3">
@@ -378,7 +372,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
               </div>
             </div>
 
-            {}
             <div className="space-y-2">
               <Label>Admin Notes (Optional)</Label>
               <Textarea
@@ -389,7 +382,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
               />
             </div>
 
-            {}
             <div className="flex gap-3">
               <Button
                 className="flex-1 bg-green-600 hover:bg-green-700"
@@ -420,7 +412,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
           </>
         ) : (
           <>
-            {}
             <div className="space-y-3">
               <Label>Fraud Flags *</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -439,7 +430,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
               </div>
             </div>
 
-            {}
             <div className="space-y-2">
               <Label>Reason for Flagging *</Label>
               <Textarea
@@ -450,7 +440,6 @@ const SubmissionReviewDialog = ({ submission, onValidate, onFlag, loading }) => 
               />
             </div>
 
-            {}
             <Button
               className="w-full bg-orange-600 hover:bg-orange-700"
               onClick={handleFlagSubmit}

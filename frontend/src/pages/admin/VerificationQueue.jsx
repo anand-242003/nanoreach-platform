@@ -28,7 +28,6 @@ export default function VerificationQueue() {
       const { data } = await axios.get(`${API_URL}${endpoint}`, { withCredentials: true });
       setItems(isInfluencer ? (data.influencers || []) : (data.brands || []));
     } catch (error) {
-      console.error('Fetch error:', error);
       setItems([]);
     } finally {
       setLoading(false);
@@ -46,7 +45,6 @@ export default function VerificationQueue() {
       setNotes('');
       fetchPending();
     } catch (error) {
-      console.error('Approve error:', error);
       alert(error.response?.data?.message || 'Failed to approve');
     } finally {
       setActionLoading(false);
@@ -68,7 +66,6 @@ export default function VerificationQueue() {
       setNotes('');
       fetchPending();
     } catch (error) {
-      console.error('Reject error:', error);
       alert(error.response?.data?.message || 'Failed to reject');
     } finally {
       setActionLoading(false);
@@ -107,7 +104,6 @@ export default function VerificationQueue() {
         <div className="text-center py-12 bg-white rounded-xl border">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <p className="text-neutral-500 text-lg">No pending verifications</p>
-          {}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,185 +1,235 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { login, clearError } from '@/store/authSlice';
-import { useToast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { login, clearError } from "@/store/authSlice";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { motion } from "framer-motion";
+import { Loader2, Eye, EyeOff, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
+const formSchema = z.object({
+  email:      z.string().email({ message: "Please enter a valid email." }),
+  password:   z.string().min(8, { message: "Password must be at least 8 characters." }),
+  rememberMe: z.boolean().default(false).optional(),
+});
+const containerVariants = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+const itemVariants = {
+  hidden:  { y: 20, opacity: 0 },
+  visible: { y: 0,  opacity: 1 },
+};
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const dispatch  = useDispatch();
+  const navigate  = useNavigate();
   const { toast } = useToast();
-  const { loading, error, isAuthenticated, user, initialized } = useSelector((state) => state.auth);
-
+  const { loading, error, isAuthenticated, user, initialized } =
+    useSelector((state) => state.auth);
   useEffect(() => {
-    if (isAuthenticated && user && initialized) {
-      if (user.role === 'ADMIN') {
-        navigate('/dashboard');
-        return;
-      }
-      
-      const hasProfile = user.role === 'INFLUENCER' 
-        ? user.influencerProfile !== null 
-        : user.brandProfile !== null;
-      
-      if (!hasProfile || user.verificationStatus === 'PENDING') {
-        navigate('/onboarding');
-      } else {
-        navigate('/dashboard');
-      }
-    }
+    if (!isAuthenticated || !user || !initialized) return;
+    if (user.role === "ADMIN") { navigate("/dashboard"); return; }
+    const hasProfile =
+      user.role === "INFLUENCER"
+        ? user.influencerProfile !== null
+        : user.brandProfile     !== null;
+    navigate(hasProfile && user.verificationStatus !== "PENDING" ? "/dashboard" : "/onboarding");
   }, [isAuthenticated, user, navigate, initialized]);
-
   useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Login Failed',
-        description: error,
-        variant: 'destructive',
-      });
-      dispatch(clearError());
-    }
+    if (!error) return;
+    toast({ title: "Login Failed", description: error, variant: "destructive" });
+    dispatch(clearError());
   }, [error, toast, dispatch]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: "", password: "", rememberMe: false },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    dispatch(login(formData));
+  const onSubmit = (data) => {
+    dispatch(login({ email: data.email, password: data.password }));
   };
 
   return (
-    <div className="min-h-screen flex">
-      {}
-      <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-full blur-3xl"
-          />
-        </div>
+    <div className="relative flex min-h-screen w-full flex-col md:flex-row">
+      <div className="relative hidden md:flex md:w-1/2 flex-col bg-foreground overflow-hidden">
 
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <Link to="/" className="inline-block">
-            <div className="text-3xl font-bold tracking-tight">
-              DRK<span className="text-neutral-400">/</span>MTTR
+        <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
+          <Link to="/">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-primary">
+                <Zap className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-2xl font-bold tracking-tight">DRK<span className="text-primary">/</span>MTTR</span>
             </div>
           </Link>
 
-          <div>
-            <h2 className="text-4xl font-bold mb-4">Welcome back</h2>
-            <p className="text-neutral-400 text-lg">Sign in to continue your journey</p>
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Influencer Marketing Platform
+            </p>
+            <h2 className="text-5xl font-bold leading-[1.1] tracking-tight">
+              We <span className="text-primary">think</span>,<br />
+              you <span className="text-primary">grow</span>.
+            </h2>
+            <p className="max-w-sm text-base text-white/60 leading-relaxed">
+              Connect with authentic brands, earn from campaigns, and build your creator business — all in one place.
+            </p>
+            <div className="flex gap-8 pt-4 border-t border-white/10">
+              {[
+                { value: "10K+", label: "Creators" },
+                { value: "500+", label: "Campaigns" },
+                { value: "₹5M+", label: "Paid out" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <p className="text-2xl font-bold text-primary">{s.value}</p>
+                  <p className="text-xs text-white/40 uppercase tracking-wide">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="text-sm text-neutral-400">© 2026 DRK/MTTR</div>
+          <p className="text-xs text-white/30">© {new Date().getFullYear()} DRK/MTTR</p>
         </div>
       </div>
-
-      {}
-      <div className="flex-1 bg-white flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md"
-        >
-          <Link to="/" className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to home</span>
-          </Link>
-            
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Sign in</h1>
-            <p className="text-neutral-600">Enter your credentials to continue</p>
-          </div>
-
-          {}
-          <div className="mb-6 p-4 bg-neutral-100 rounded-lg text-sm">
-            <p className="font-semibold mb-2">Test Accounts:</p>
-            <p className="text-neutral-600">Admin: admin@drkmttr.com</p>
-            <p className="text-neutral-600">Brand: nike@brand.com</p>
-            <p className="text-neutral-600">Influencer: techguru@influencer.com</p>
-            <p className="text-neutral-500 mt-1">Password: password123</p>
-          </div>
-              
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-neutral-900 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-                className="w-full border border-neutral-300 rounded-lg px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-neutral-900 mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••••"
-                  required
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-3 pr-12 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+      <div className="flex w-full flex-col items-center justify-center bg-background p-8 md:w-1/2">
+        <div className="w-full max-w-md">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-6"
+          >
+            <motion.div variants={itemVariants} className="flex items-center gap-2 md:hidden">
+              <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-primary">
+                <Zap className="h-4 w-4 text-white" />
               </div>
-            </div>
+              <span className="text-xl font-bold">DRK<span className="text-primary">/</span>MTTR</span>
+            </motion.div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" className="w-4 h-4 rounded border-neutral-300" />
-                <span className="text-sm text-neutral-600">Remember me</span>
-              </label>
-              <Link to="/auth/forgot-password" className="text-sm font-medium text-neutral-900 hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 bg-neutral-900 hover:bg-neutral-800 rounded-lg text-white font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            <motion.div variants={itemVariants}>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                Welcome back
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Sign in to continue to your dashboard
+              </p>
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="rounded border border-border bg-muted/40 p-3 text-xs space-y-0.5"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'SIGN IN'
-              )}
-            </button>
-          </form>
-              
-          <p className="mt-6 text-center text-neutral-600">
-            Don't have an account?{' '}
-            <Link to="/auth/signup" className="font-semibold text-neutral-900 hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </motion.div>
+              <p className="font-semibold text-foreground mb-1">Demo accounts</p>
+              <p className="text-muted-foreground">Admin: admin@drkmttr.com</p>
+              <p className="text-muted-foreground">Brand: nike@brand.com</p>
+              <p className="text-muted-foreground">Influencer: techguru@influencer.com</p>
+              <p className="text-muted-foreground/60 pt-1">Password: password123</p>
+            </motion.div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <motion.div variants={itemVariants}>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="you@example.com" disabled={loading} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••••"
+                              className="pr-10"
+                              disabled={loading}
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((v) => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="flex items-center justify-between">
+                  <FormField
+                    control={form.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={loading}
+                          />
+                        </FormControl>
+                        <FormLabel className="cursor-pointer font-normal text-sm">
+                          Remember me
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <Link to="#" className="text-sm font-medium text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>
+                    ) : (
+                      "Continue"
+                    )}
+                  </Button>
+                </motion.div>
+              </form>
+            </Form>
+
+            <motion.p variants={itemVariants} className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link to="/auth/signup" className="font-medium text-primary hover:underline">
+                Create one here
+              </Link>
+            </motion.p>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

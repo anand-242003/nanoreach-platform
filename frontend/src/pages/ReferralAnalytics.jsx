@@ -111,7 +111,6 @@ export default function ReferralAnalytics() {
       </div>
 
       <div className="space-y-6">
-        {}
         <ReferralLinkCard
           referralLink={data.referralLink}
           campaign={data.campaign}
@@ -119,7 +118,6 @@ export default function ReferralAnalytics() {
           onRefresh={fetchStats}
         />
 
-        {}
         {data.analytics.totalSuspicious > 0 && (
           <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10">
             <CardContent className="py-4">
@@ -138,9 +136,7 @@ export default function ReferralAnalytics() {
           </Card>
         )}
 
-        {}
         <div className="grid gap-6 md:grid-cols-2">
-          {}
           {dailyData.length > 0 && (
             <Card>
               <CardHeader>
@@ -170,7 +166,6 @@ export default function ReferralAnalytics() {
             </Card>
           )}
 
-          {}
           {deviceData.length > 0 && (
             <Card>
               <CardHeader>
@@ -203,7 +198,6 @@ export default function ReferralAnalytics() {
             </Card>
           )}
 
-          {}
           {browserData.length > 0 && (
             <Card className="md:col-span-2">
               <CardHeader>
@@ -228,7 +222,6 @@ export default function ReferralAnalytics() {
           )}
         </div>
 
-        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

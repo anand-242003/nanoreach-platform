@@ -22,7 +22,6 @@ export default function Campaigns() {
       const { data } = await axios.get(`${API_URL}/campaigns?status=ACTIVE`, { withCredentials: true });
       setCampaigns(data.campaigns || []);
     } catch (error) {
-      console.error('Fetch campaigns error:', error);
     } finally {
       setLoading(false);
     }

@@ -50,7 +50,6 @@ export default function Dashboard() {
         setCampaigns(campaignsRes.data.campaigns || []);
       }
     } catch (error) {
-      console.error('Dashboard Error:', error);
     } finally {
       setLoading(false);
     }

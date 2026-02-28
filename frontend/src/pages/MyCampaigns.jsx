@@ -22,7 +22,6 @@ export default function MyCampaigns() {
       const { data } = await axios.get(`${API_URL}/campaigns/my${params}`, { withCredentials: true });
       setCampaigns(data.campaigns || []);
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
     } finally {
       setLoading(false);
     }

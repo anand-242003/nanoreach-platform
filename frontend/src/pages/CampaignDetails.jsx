@@ -150,7 +150,6 @@ export default function CampaignDetails() {
           <h1 className="text-2xl font-bold text-neutral-900 mt-2">{campaign.title}</h1>
         </div>
 
-        {}
         <div className="flex border-b">
           {['details', 'leaderboard'].map((tab) => (
             <button
@@ -167,7 +166,6 @@ export default function CampaignDetails() {
 
         {activeTab === 'details' && (
           <div className="p-6">
-            {}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center p-4 bg-neutral-50 rounded-lg">
                 <DollarSign className="w-5 h-5 text-neutral-400 mx-auto mb-2" />
@@ -254,7 +252,6 @@ export default function CampaignDetails() {
           </div>
         )}
 
-        {}
         {isInfluencer && (
           <div className="p-6 border-t bg-neutral-50">
             {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>}

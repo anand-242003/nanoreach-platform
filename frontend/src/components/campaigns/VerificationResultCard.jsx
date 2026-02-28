@@ -75,7 +75,6 @@ const VerificationResultCard = ({ submissionId }) => {
       
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch verification history:', err);
       setError('Failed to load verification data');
     } finally {
       setLoading(false);
@@ -102,7 +101,6 @@ const VerificationResultCard = ({ submissionId }) => {
         await fetchVerificationHistory();
       }
     } catch (err) {
-      console.error('Reverification failed:', err);
       setError('Failed to reverify metrics');
     } finally {
       setReverifying(false);
@@ -176,7 +174,6 @@ const VerificationResultCard = ({ submissionId }) => {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {}
         <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div>
             <p className="text-sm font-medium text-blue-900">Fraud Detection Result</p>
@@ -190,7 +187,6 @@ const VerificationResultCard = ({ submissionId }) => {
           />
         </div>
 
-        {}
         <div>
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -218,7 +214,6 @@ const VerificationResultCard = ({ submissionId }) => {
           </div>
         </div>
 
-        {}
         <div className="p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -234,7 +229,6 @@ const VerificationResultCard = ({ submissionId }) => {
           </p>
         </div>
 
-        {}
         {verification.fraudChecks && verification.fraudChecks.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold mb-3">Fraud Detection Checks</h3>
@@ -274,7 +268,6 @@ const VerificationResultCard = ({ submissionId }) => {
           </div>
         )}
 
-        {}
         {history.length > 1 && (
           <div>
             <h3 className="text-sm font-semibold mb-3">Verification History</h3>

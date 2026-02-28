@@ -254,7 +254,6 @@ export default function ApplicationQueue() {
             ))}
           </div>
           
-          {}
           {pagination.pages > 1 && (
             <div className="flex items-center justify-center gap-4 mt-6">
               <Button
@@ -283,7 +282,6 @@ export default function ApplicationQueue() {
         </>
       )}
 
-      {}
       <Dialog 
         open={rejectModal.open} 
         onOpenChange={(open) => !open && setRejectModal({ open: false, application: null })}

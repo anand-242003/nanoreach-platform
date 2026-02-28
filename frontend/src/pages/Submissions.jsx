@@ -24,7 +24,6 @@ export default function Submissions() {
       setSubmissions(submissionsRes.data.submissions || []);
       setReferralStats(referralRes.data.stats || []);
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

@@ -270,7 +270,6 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -293,8 +292,6 @@ export default function Onboarding() {
               </div>
             </div>
           </div>
-
-          {}
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
@@ -322,8 +319,6 @@ export default function Onboarding() {
           </div>
         </div>
       </div>
-
-      {}
       <div className="max-w-2xl mx-auto px-4 py-8">
         {error && (
           <motion.div
@@ -338,7 +333,6 @@ export default function Onboarding() {
 
         <div className="bg-white rounded-xl shadow-sm border p-8">
           <AnimatePresence mode="wait">
-            {}
             {isInfluencer && (
               <>
                 {currentStep === 1 && (
@@ -494,8 +488,6 @@ export default function Onboarding() {
                 )}
               </>
             )}
-
-            {}
             {isBrand && (
               <>
                 {currentStep === 1 && (
@@ -598,8 +590,6 @@ export default function Onboarding() {
               </>
             )}
           </AnimatePresence>
-
-          {}
           <div className="flex justify-between mt-8 pt-6 border-t">
             {currentStep > 1 ? (
               <button type="button" onClick={prevStep}

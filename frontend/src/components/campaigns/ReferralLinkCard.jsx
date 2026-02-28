@@ -99,7 +99,6 @@ export default function ReferralLinkCard({ referralLink, campaign, showAnalytics
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {}
         <div className="space-y-2">
           <label className="text-sm font-medium">Your Referral Link</label>
           <div className="flex gap-2">
@@ -126,7 +125,6 @@ export default function ReferralLinkCard({ referralLink, campaign, showAnalytics
           </div>
         </div>
 
-        {}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
@@ -145,7 +143,6 @@ export default function ReferralLinkCard({ referralLink, campaign, showAnalytics
           })}
         </div>
 
-        {}
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-purple-600" />
@@ -156,7 +153,6 @@ export default function ReferralLinkCard({ referralLink, campaign, showAnalytics
           </Badge>
         </div>
 
-        {}
         {showAnalytics && referralLink.recentClicks?.length > 0 && (
           <div className="space-y-2">
             <label className="text-sm font-medium">Recent Clicks</label>

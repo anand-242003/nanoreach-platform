@@ -1,157 +1,210 @@
 import { useEffect, useRef, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { Bell, Search, Plus, TrendingUp, Users, DollarSign, BarChart3 } from 'lucide-react';
+import {
+  LayoutDashboard, Target, FileText, Activity, BarChart3,
+  DollarSign, Eye, Award, Zap, Shield, Sparkles, CheckCircle2,
+  ArrowUpRight, ChevronRight,
+} from 'lucide-react';
 
 Chart.register(...registerables);
+const NAV = [
+  { icon: LayoutDashboard, label: 'Dashboard',       active: true  },
+  { icon: Target,          label: 'Browse Campaigns', active: false },
+  { icon: FileText,        label: 'My Applications',  active: false },
+  { icon: Activity,        label: 'Activity Feed',    active: false },
+  { icon: BarChart3,       label: 'Referral Hub',     active: false },
+];
+
+const STATS = [
+  { icon: FileText,   label: 'Applications',  value: '24',   accent: '#e50914', bg: 'rgba(229,9,20,0.08)'   },
+  { icon: DollarSign, label: 'Total Earnings', value: '₹82K', accent: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+  { icon: Eye,        label: 'Total Views',    value: '1.4M', accent: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+  { icon: Award,      label: 'Success Rate',   value: '91%',  accent: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
+];
+
+const FEATURES = [
+  { icon: CheckCircle2, label: 'Verified creators only', color: '#10b981', bg: 'rgba(16,185,129,0.08)'  },
+  { icon: Zap,          label: '24-hour payouts',         color: '#e50914', bg: 'rgba(229,9,20,0.08)'    },
+  { icon: Sparkles,     label: 'AI campaign matching',    color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)'  },
+  { icon: Shield,       label: 'Escrow protection',       color: '#3b82f6', bg: 'rgba(59,130,246,0.08)'  },
+];
+
+const CAMPAIGNS = [
+  { name: 'Urban Threads SS26',    budget: '₹45,000', days: 12 },
+  { name: 'GlowLab Skincare Drop', budget: '₹28,500', days: 7  },
+  { name: 'TechGear Pro Launch',   budget: '₹62,000', days: 21 },
+];
 
 export default function DashboardPreview() {
-  const chartRef = useRef(null);
+  const chartRef      = useRef(null);
   const chartInstance = useRef(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!mounted || !chartRef.current) return;
+    if (chartInstance.current) chartInstance.current.destroy();
 
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-
-    const ctx = chartRef.current.getContext('2d');
-    
-    chartInstance.current = new Chart(ctx, {
+    chartInstance.current = new Chart(chartRef.current.getContext('2d'), {
       type: 'line',
       data: {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [
           {
-            label: 'Engagement',
-            data: [1200, 1900, 1500, 2800, 2200, 3100, 2800],
-            borderColor: '#171717',
-            backgroundColor: 'rgba(23, 23, 23, 0.1)',
+            label: 'Earnings',
+            data: [3200, 5400, 4100, 7800, 6200, 9100, 8400],
+            borderColor: '#e50914',
+            backgroundColor: 'rgba(229,9,20,0.07)',
             fill: true,
-            tension: 0.4,
+            tension: 0.45,
             pointRadius: 0,
-            pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#171717',
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#e50914',
+            borderWidth: 2,
           },
           {
-            label: 'Reach',
-            data: [800, 1200, 1100, 1800, 1600, 2200, 2000],
-            borderColor: '#a3a3a3',
+            label: 'Views',
+            data: [1800, 3200, 2600, 5100, 4200, 6300, 5800],
+            borderColor: '#d1d5db',
             backgroundColor: 'transparent',
-            borderDash: [5, 5],
-            tension: 0.4,
+            borderDash: [4, 4],
+            tension: 0.45,
             pointRadius: 0,
+            borderWidth: 1.5,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#a3a3a3', font: { size: 11 } } },
-          y: { grid: { color: '#f5f5f5' }, ticks: { color: '#a3a3a3', font: { size: 11 } } },
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+          y: { grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: { size: 9 } } },
         },
-        interaction: { intersect: false, mode: 'index' },
       },
     });
 
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
+    return () => { if (chartInstance.current) chartInstance.current.destroy(); };
   }, [mounted]);
 
-  const stats = [
-    { label: 'Total Reach', value: '2.4M', icon: Users, change: '+12%' },
-    { label: 'Campaigns', value: '12', icon: BarChart3, change: '+3' },
-    { label: 'Revenue', value: '$48.2K', icon: DollarSign, change: '+8%' },
-    { label: 'Engagement', value: '5.2%', icon: TrendingUp, change: '+0.8%' },
-  ];
-
   return (
-    <div className="h-full w-full bg-neutral-50">
-      <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-3">
-        <div className="flex items-center gap-4">
-          <span className="text-lg font-bold text-neutral-900 tracking-tight">
-            DRK<span className="text-neutral-400">/</span>MTTR
-          </span>
-          <div className="flex items-center gap-1 rounded-lg bg-neutral-100 px-3 py-1.5">
-            <Search className="h-4 w-4 text-neutral-400" />
-            <span className="text-sm text-neutral-400">Search...</span>
+    <div style={{ height: '100%', width: '100%', display: 'flex', fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: '#f9fafb' }}>
+      <div style={{ width: 152, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#111111', borderRight: '1px solid #2a2a2a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid #2a2a2a' }}>
+          <div style={{ width: 20, height: 20, borderRadius: 4, backgroundColor: '#e50914', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Shield style={{ width: 11, height: 11, color: '#fff' }} />
           </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>
+            DRK<span style={{ color: '#e50914' }}>/</span>MTTR
+          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <Bell className="h-5 w-5 text-neutral-500" />
-          <div className="h-8 w-8 rounded-full bg-neutral-900" />
+        <nav style={{ flex: 1, padding: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {NAV.map(({ icon: Icon, label, active }) => (
+            <div
+              key={label}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '6px 8px', borderRadius: 6, cursor: 'pointer',
+                backgroundColor: active ? 'rgba(229,9,20,0.12)' : 'transparent',
+                color: active ? '#e50914' : '#9ca3af',
+              }}
+            >
+              <Icon style={{ width: 12, height: 12, flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>{label}</span>
+            </div>
+          ))}
+        </nav>
+        <div style={{ padding: 10, borderTop: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: '#e50914', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>A</span>
+          </div>
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#e5e7eb', lineHeight: 1.3 }}>Alex Creator</p>
+            <p style={{ fontSize: 9, color: '#6b7280' }}>Influencer</p>
+          </div>
         </div>
       </div>
-
-      <div className="flex h-[calc(100%-57px)]">
-        <div className="w-48 border-r border-neutral-200 bg-white p-4">
-          <div className="space-y-1">
-            {['Dashboard', 'Campaigns', 'Creators', 'Analytics', 'Payments'].map((item, i) => (
-              <div
-                key={item}
-                className={`rounded-lg px-3 py-2 text-sm ${i === 0 ? 'bg-neutral-900 text-white' : 'text-neutral-600'}`}
-              >
-                {item}
-              </div>
-            ))}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ height: 46, flexShrink: 0, backgroundColor: '#fff', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+              <Zap style={{ width: 10, height: 10, color: '#e50914' }} />
+              <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#e50914' }}>Creator Dashboard</span>
+            </div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>Welcome, Alex</p>
           </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 5, backgroundColor: '#e50914', color: '#fff', border: 'none', borderRadius: 5, padding: '4px 9px', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+            <Target style={{ width: 9, height: 9 }} />
+            Browse Campaigns
+          </button>
         </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-neutral-900">Dashboard</h1>
-              <p className="text-sm text-neutral-500">Welcome back</p>
-            </div>
-            <button className="flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm text-white">
-              <Plus className="h-4 w-4" />
-              New Campaign
-            </button>
-          </div>
-
-          <div className="mb-6 grid grid-cols-4 gap-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-neutral-200 bg-white p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <stat.icon className="h-4 w-4 text-neutral-400" />
-                  <span className="text-xs text-green-600">{stat.change}</span>
+        <div style={{ flex: 1, overflow: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {STATS.map(({ icon: Icon, label, value, accent, bg }) => (
+              <div key={label} style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', padding: '10px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 7, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon style={{ width: 13, height: 13, color: accent }} />
+                  </div>
+                  <ArrowUpRight style={{ width: 11, height: 11, color: '#d1d5db' }} />
                 </div>
-                <p className="text-2xl font-semibold text-neutral-900">{stat.value}</p>
-                <p className="text-xs text-neutral-500">{stat.label}</p>
+                <p style={{ fontSize: 17, fontWeight: 700, color: '#111', lineHeight: 1 }}>{value}</p>
+                <p style={{ fontSize: 9, color: '#9ca3af', marginTop: 3, fontWeight: 500 }}>{label}</p>
               </div>
             ))}
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7 }}>
+            {FEATURES.map(({ icon: Icon, label, color, bg }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, backgroundColor: '#fff', borderRadius: 7, border: '1px solid #e5e7eb', padding: '7px 9px' }}>
+                <div style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon style={{ width: 10, height: 10, color }} />
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 500, color: '#374151', lineHeight: 1.3 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 10, flex: 1, minHeight: 0 }}>
+            <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', padding: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Earnings Overview</p>
+                  <p style={{ fontSize: 9, color: '#9ca3af' }}>Last 7 days</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#e50914' }} />
+                    <span style={{ fontSize: 9, color: '#6b7280' }}>Earnings</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#d1d5db' }} />
+                    <span style={{ fontSize: 9, color: '#6b7280' }}>Views</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ height: 100 }}>
+                <canvas ref={chartRef} />
+              </div>
+            </div>
+            <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', padding: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Available Campaigns</p>
+                <span style={{ fontSize: 9, color: '#e50914', fontWeight: 600, cursor: 'pointer' }}>View all</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {CAMPAIGNS.map((c) => (
+                  <div key={c.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fafafa', border: '1px solid #f3f4f6', borderRadius: 6, padding: '7px 9px', cursor: 'pointer' }}>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 600, color: '#111', lineHeight: 1.4 }}>{c.name}</p>
+                      <p style={{ fontSize: 8.5, color: '#9ca3af' }}>{c.budget} · {c.days}d left</p>
+                    </div>
+                    <ChevronRight style={{ width: 9, height: 9, color: '#d1d5db', flexShrink: 0 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div className="rounded-xl border border-neutral-200 bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-neutral-900">Performance</h3>
-                <p className="text-sm text-neutral-500">Last 7 days</p>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-neutral-900" />
-                  <span className="text-neutral-600">Engagement</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-neutral-400" />
-                  <span className="text-neutral-600">Reach</span>
-                </div>
-              </div>
-            </div>
-            <div className="h-48">
-              <canvas ref={chartRef} />
-            </div>
           </div>
         </div>
       </div>

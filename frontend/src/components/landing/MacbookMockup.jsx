@@ -6,14 +6,12 @@ import DashboardPreview from './DashboardPreview';
 export default function MacbookMockup() {
   return (
     <section className="relative min-h-screen overflow-hidden" style={{ backgroundColor: '#2C2C2C' }}>
-      {}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-32 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
       </div>
       
       <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-20">
-        {}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -21,8 +19,6 @@ export default function MacbookMockup() {
           transition={{ duration: 0.7 }}
           className="mb-20 relative"
         >
-          {}
-          {}
           <div className="absolute -top-12 -left-8 w-32 h-32 opacity-50 pointer-events-none">
             <svg viewBox="0 0 100 100" className="w-full h-full">
               <path
@@ -36,7 +32,6 @@ export default function MacbookMockup() {
             </svg>
           </div>
 
-          {}
           <div className="absolute -top-16 -right-12 w-40 h-40 opacity-45 pointer-events-none">
             <svg viewBox="0 0 100 100" className="w-full h-full">
               <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(239, 68, 68, 0.6)" strokeWidth="2" strokeDasharray="3 6" />
@@ -45,7 +40,6 @@ export default function MacbookMockup() {
             </svg>
           </div>
 
-          {}
           <div className="absolute -bottom-8 -left-12 w-36 h-24 opacity-50 pointer-events-none">
             <svg viewBox="0 0 120 80" className="w-full h-full">
               <path
@@ -59,7 +53,6 @@ export default function MacbookMockup() {
             </svg>
           </div>
 
-          {}
           <div className="absolute -bottom-10 -right-8 w-32 h-32 opacity-45 pointer-events-none">
             <svg viewBox="0 0 100 100" className="w-full h-full">
               <path
@@ -81,7 +74,6 @@ export default function MacbookMockup() {
             </svg>
           </div>
 
-          {}
           <div className="absolute top-1/2 -right-6 -translate-y-1/2 opacity-40 pointer-events-none">
             <div className="flex flex-col gap-3">
               <div className="flex gap-3">
@@ -100,7 +92,6 @@ export default function MacbookMockup() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            {}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -110,7 +101,6 @@ export default function MacbookMockup() {
             >
               <div className="relative">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-full mb-4">
-                  {}
                   <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Why Choose Us</span>
                 </div>
                 
@@ -124,7 +114,6 @@ export default function MacbookMockup() {
                   Traditional influencer marketing is broken. Expensive agencies, fake followers, and zero transparency. We built DRK/MTTR to fix that—connecting brands directly with verified nano-influencers who drive real engagement and measurable ROI.
                 </p>
 
-                {}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
@@ -149,7 +138,6 @@ export default function MacbookMockup() {
               </div>
             </motion.div>
 
-            {}
             <div className="flex flex-col gap-4">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -183,7 +171,6 @@ export default function MacbookMockup() {
           </div>
         </motion.div>
 
-        {}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}

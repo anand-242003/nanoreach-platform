@@ -10,12 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const PLATFORMS = [
-  { value: 'YOUTUBE', label: 'YouTube', icon: '▶️' },
-  { value: 'INSTAGRAM', label: 'Instagram', icon: '📷' },
-  { value: 'TIKTOK', label: 'TikTok', icon: '🎵' },
-  { value: 'TWITTER', label: 'Twitter/X', icon: '🐦' },
-  { value: 'FACEBOOK', label: 'Facebook', icon: '👥' },
-  { value: 'LINKEDIN', label: 'LinkedIn', icon: '💼' },
+  { value: 'YOUTUBE', label: 'YouTube' },
+  { value: 'INSTAGRAM', label: 'Instagram' },
+  { value: 'TIKTOK', label: 'TikTok' },
+  { value: 'TWITTER', label: 'Twitter/X' },
+  { value: 'FACEBOOK', label: 'Facebook' },
+  { value: 'LINKEDIN', label: 'LinkedIn' },
 ];
 
 const CONTENT_TYPES = {
@@ -77,7 +77,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
         setReferralLink(response.data.referralLink);
       }
     } catch (error) {
-      console.error('Error fetching referral link:', error);
     }
   };
 
@@ -152,7 +151,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
 
   const availableContentTypes = CONTENT_TYPES[socialPlatform] || [];
 
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -162,8 +160,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
         <DialogHeader>
           <DialogTitle>Submit Your Work</DialogTitle>
         </DialogHeader>
-
-        {/* Referral Link Reminder */}
         {referralLink && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
             <div className="flex items-start gap-2">
@@ -183,7 +179,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
         )}
 
         <form onSubmit={onSubmit} className="space-y-4">
-          {/* Platform Selector */}
           <div className="space-y-2">
             <Label>Social Platform *</Label>
             <Select value={socialPlatform} onValueChange={setSocialPlatform}>
@@ -193,10 +188,7 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
               <SelectContent>
                 {PLATFORMS.map(platform => (
                   <SelectItem key={platform.value} value={platform.value}>
-                    <span className="flex items-center gap-2">
-                      <span>{platform.icon}</span>
-                      <span>{platform.label}</span>
-                    </span>
+                    {platform.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -205,8 +197,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
               <p className="text-xs text-red-500">{errors.socialPlatform}</p>
             )}
           </div>
-
-          {/* Content Type Selector */}
           <div className="space-y-2">
             <Label>Content Type *</Label>
             <Select value={contentType} onValueChange={setContentType}>
@@ -225,8 +215,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
               <p className="text-xs text-red-500">{errors.contentType}</p>
             )}
           </div>
-
-          {/* Content URL */}
           <div className="space-y-2">
             <Label>Content Link *</Label>
             <div className="relative">
@@ -245,8 +233,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
               Paste the direct link to your published content
             </p>
           </div>
-
-          {/* Optional Message */}
           <div className="space-y-2">
             <Label>Additional Notes (Optional)</Label>
             <Textarea 

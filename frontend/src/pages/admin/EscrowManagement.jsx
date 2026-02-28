@@ -21,7 +21,6 @@ export default function EscrowManagement() {
       const { data } = await axios.get(`${API_URL}/escrow/pending`, { withCredentials: true });
       setEscrows(data.escrows || []);
     } catch (error) {
-      console.error('Fetch escrows error:', error);
     } finally {
       setLoading(false);
     }

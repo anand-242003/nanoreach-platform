@@ -27,7 +27,6 @@ export default function SubmissionReview() {
       setSubmissions(subRes.data.submissions || []);
       setCampaign(campRes.data.campaign);
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

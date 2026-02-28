@@ -19,7 +19,6 @@ export default function CampaignSubmissions() {
       const { data } = await axios.get(`${API_URL}/submissions/campaign/${id}`, { withCredentials: true });
       setSubmissions(data.submissions || []);
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
