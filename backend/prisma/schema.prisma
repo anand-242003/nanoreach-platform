@@ -53,14 +53,20 @@ enum Role {
 }
 
 model User {
-  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
-  email              String             @unique
-  password           String
-  name               String
-  role               Role               @default(INFLUENCER)
-  verificationStatus VerificationStatus @default(PENDING)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String             @unique
+  password              String
+  name                  String
+  role                  Role               @default(INFLUENCER)
+  verificationStatus    VerificationStatus @default(PENDING)
+  emailVerified         Boolean            @default(false)
+  emailVerificationToken String?
+  emailVerificationExpiry DateTime?
+  passwordResetToken    String?
+  passwordResetExpiry   DateTime?
+  lastLoginAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   campaigns          Campaign[]
   influencerProfile  InfluencerProfile?
@@ -210,16 +216,67 @@ model Submission {
   campaign         Campaign          @relation(fields: [campaignId], references: [id])
   influencerId     String            @db.ObjectId
   contentUrl       String
-  socialPlatform   String            @default("YOUTUBE")
-  contentType      String            @default("VIDEO")
-  metrics          Json?
+  socialPlatform   String            @default("YOUTUBE") // YOUTUBE, INSTAGRAM, TWITTER, FACEBOOK, TIKTOK
+  contentType      String            @default("VIDEO") // VIDEO, POST, STORY, REEL, SHORT
+  metrics          Json? // { views, likes, comments, shares, watchTime, etc. }
   validationStatus ValidationStatus  @default(PENDING)
   fraudFlags       String[]          @default([])
   adminNotes       String?
+  validatedBy      String? // Admin user ID who validated
+  validatedAt      DateTime?
   score            Float?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   leaderboardEntry LeaderboardEntry?
+  metricsSnapshots MetricsSnapshot[]
+  fraudAlerts      FraudAlert[]
+}
+
+model MetricsSnapshot {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  submissionId String     @db.ObjectId
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  // Verified metrics from API
+  views      Int
+  likes      Int
+  comments   Int
+  shares     Int?
+  engagement Float?
+
+  // Verification metadata
+  verifiedVia String // "YOUTUBE_API", "INSTAGRAM_API", "MANUAL"
+  apiResponse Json? // Store raw API response for audit trail
+
+  // Fraud detection results
+  fraudScore Float?
+  riskLevel  String? // LOW, MEDIUM, HIGH, CRITICAL
+  fraudChecks Json? // Array of check results
+
+  capturedAt DateTime @default(now())
+
+  @@index([submissionId, capturedAt])
+}
+
+model FraudAlert {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  submissionId String     @db.ObjectId
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  alertType   String // "ENGAGEMENT_FRAUD", "GROWTH_SPIKE", "BOT_COMMENTS", etc.
+  severity    String // LOW, MEDIUM, HIGH, CRITICAL
+  description String
+  evidence    Json // Detailed fraud indicators
+
+  status       String    @default("PENDING") // PENDING, REVIEWED, CONFIRMED, DISMISSED
+  reviewedBy   String?   @db.ObjectId
+  reviewedAt   DateTime?
+  reviewNotes  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, severity])
+  @@index([submissionId, createdAt])
 }
 
 model LeaderboardEntry {

@@ -18,7 +18,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Require verified user
 export const requireVerified = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
@@ -45,7 +44,6 @@ export const requireVerified = async (req, res, next) => {
   }
 };
 
-// Require Admin role
 export const requireAdmin = (req, res, next) => {
   if (req.user.role !== "ADMIN") {
     return res.status(403).json({ 
@@ -56,7 +54,6 @@ export const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Require Brand role
 export const requireBrand = (req, res, next) => {
   if (req.user.role !== "BRAND") {
     return res.status(403).json({ 
@@ -67,7 +64,6 @@ export const requireBrand = (req, res, next) => {
   next();
 };
 
-// Require Influencer role
 export const requireInfluencer = (req, res, next) => {
   if (req.user.role !== "INFLUENCER") {
     return res.status(403).json({ 
@@ -78,7 +74,6 @@ export const requireInfluencer = (req, res, next) => {
   next();
 };
 
-// Backwards-compatible aliases used in existing routes
 export const authenticate = protect;
 
 export const authorize = (...roles) => {

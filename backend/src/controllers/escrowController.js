@@ -1,6 +1,9 @@
 import prisma from "../config/db.js";
+import { isValidObjectId, isPositiveNumber } from "../utils/validators.js";
+import { logAuditEvent, AuditEventType, extractRequestContext } from "../utils/auditLogger.js";
 
 const SECURITY_DEPOSIT_PERCENTAGE = 0.25;
+const MIN_SECURITY_DEPOSIT = 250; 
 
 const PLATFORM_BANK_DETAILS = {
   bankName: "HDFC Bank",
@@ -10,62 +13,91 @@ const PLATFORM_BANK_DETAILS = {
   branch: "Mumbai Main Branch",
 };
 
-// Create escrow for a campaign
 export const createEscrow = async (req, res) => {
+  const context = extractRequestContext(req);
+  
   try {
     const { campaignId } = req.params;
     const brandId = req.user.id;
 
-    console.log('Creating escrow for campaign:', campaignId);
+    if (!isValidObjectId(campaignId)) {
+      return res.status(400).json({ message: "Invalid campaign ID" });
+    }
 
-    const campaign = await prisma.campaign.findUnique({
-      where: { id: campaignId },
-      include: { escrow: true },
+    const result = await prisma.$transaction(async (tx) => {
+      const campaign = await tx.campaign.findUnique({
+        where: { id: campaignId },
+        include: { escrow: true },
+      });
+
+      if (!campaign) {
+        throw { status: 404, message: "Campaign not found" };
+      }
+
+      if (campaign.brandId !== brandId) {
+        throw { status: 403, message: "Not authorized" };
+      }
+
+      if (campaign.escrow) {
+        throw { status: 400, message: "Escrow already exists for this campaign" };
+      }
+
+      if (campaign.status !== 'DRAFT') {
+        throw { status: 400, message: "Escrow can only be created for draft campaigns" };
+      }
+
+      const securityDeposit = Math.max(
+        Math.round(campaign.budget * SECURITY_DEPOSIT_PERCENTAGE),
+        MIN_SECURITY_DEPOSIT
+      );
+
+      const escrow = await tx.escrow.create({
+        data: {
+          campaignId,
+          amount: securityDeposit,
+          totalPrizePool: campaign.budget,
+          status: 'PENDING',
+        },
+      });
+      
+      return { escrow, campaign };
     });
 
-    if (!campaign) {
-      return res.status(404).json({ message: "Campaign not found" });
-    }
-
-    if (campaign.brandId !== brandId) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    if (campaign.escrow) {
-      return res.status(400).json({ message: "Escrow already exists for this campaign" });
-    }
-
-    const securityDeposit = Math.round(campaign.budget * SECURITY_DEPOSIT_PERCENTAGE);
-
-    const escrow = await prisma.escrow.create({
-      data: {
-        campaignId,
-        amount: securityDeposit,
-        totalPrizePool: campaign.budget,
-        status: 'PENDING',
+    await logAuditEvent({
+      eventType: AuditEventType.ESCROW_CREATED,
+      userId: brandId,
+      targetType: 'ESCROW',
+      targetId: result.escrow.id,
+      metadata: { 
+        campaignId, 
+        amount: result.escrow.amount,
+        totalPrizePool: result.escrow.totalPrizePool 
       },
+      ...context,
+      severity: 'INFO',
     });
-
-    console.log('Escrow created:', escrow.id);
 
     res.status(201).json({
       message: "Escrow created. Please pay the security deposit to activate your campaign.",
-      escrow,
+      escrow: result.escrow,
       paymentInstructions: {
-        securityDeposit,
-        totalPrizePool: campaign.budget,
+        securityDeposit: result.escrow.amount,
+        totalPrizePool: result.campaign.budget,
         depositPercentage: '25%',
         ...PLATFORM_BANK_DETAILS,
-        reference: `ESC-${escrow.id.slice(-8).toUpperCase()}`,
+        reference: `ESC-${result.escrow.id.slice(-8).toUpperCase()}`,
+        note: "Include reference number in payment remarks for faster verification",
       },
     });
   } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ message: error.message });
+    }
     console.error("Create Escrow Error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// Get escrow status for a campaign
 export const getEscrowStatus = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -95,7 +127,6 @@ export const getEscrowStatus = async (req, res) => {
   }
 };
 
-// Mark escrow as payment pending (brand confirms payment)
 export const confirmPayment = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -144,7 +175,6 @@ export const confirmPayment = async (req, res) => {
   }
 };
 
-// Admin: Get all pending escrows
 export const getPendingEscrows = async (req, res) => {
   try {
     const escrows = await prisma.escrow.findMany({
@@ -181,7 +211,6 @@ export const getPendingEscrows = async (req, res) => {
   }
 };
 
-// Admin: Verify payment and fund escrow
 export const verifyAndFundEscrow = async (req, res) => {
   try {
     const { escrowId } = req.params;
@@ -238,7 +267,6 @@ export const verifyAndFundEscrow = async (req, res) => {
   }
 };
 
-// Admin: Reject payment
 export const rejectPayment = async (req, res) => {
   try {
     const { escrowId } = req.params;
@@ -277,60 +305,141 @@ export const rejectPayment = async (req, res) => {
   }
 };
 
-// Admin: Release escrow to winners
 export const releaseEscrow = async (req, res) => {
+  const context = extractRequestContext(req);
+  
   try {
     const { escrowId } = req.params;
     const { distributions } = req.body;
     const adminId = req.user.id;
 
-    const escrow = await prisma.escrow.findUnique({
-      where: { id: escrowId },
-      include: { campaign: true },
-    });
-
-    if (!escrow) {
-      return res.status(404).json({ message: "Escrow not found" });
+    if (!isValidObjectId(escrowId)) {
+      return res.status(400).json({ message: "Invalid escrow ID" });
     }
 
-    if (escrow.status !== 'FUNDED') {
-      return res.status(400).json({ message: "Escrow is not funded" });
+    if (!distributions || !Array.isArray(distributions) || distributions.length === 0) {
+      return res.status(400).json({ message: "Prize distributions are required" });
     }
 
-    const updated = await prisma.escrow.update({
-      where: { id: escrowId },
-      data: {
-        status: 'RELEASED',
-        releasedAt: new Date(),
-        releaseDetails: distributions || [],
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      const escrow = await tx.escrow.findUnique({
+        where: { id: escrowId },
+        include: { 
+          campaign: {
+            include: {
+              submissions: {
+                where: { validationStatus: 'APPROVED' },
+                select: { influencerId: true },
+              },
+            },
+          },
+        },
+      });
+
+      if (!escrow) {
+        throw { status: 404, message: "Escrow not found" };
+      }
+
+      if (escrow.status !== 'FUNDED') {
+        throw { status: 400, message: `Cannot release escrow in ${escrow.status} status` };
+      }
+
+      if (escrow.campaign.status !== 'COMPLETED' && escrow.campaign.status !== 'ACTIVE') {
+        throw { status: 400, message: "Campaign must be active or completed to release funds" };
+      }
+
+      let totalDistribution = 0;
+      const validDistributions = [];
+      const validInfluencerIds = new Set(escrow.campaign.submissions.map(s => s.influencerId));
+      
+      for (const dist of distributions) {
+        if (!dist.influencerId || !isPositiveNumber(dist.amount)) {
+          continue;
+        }
+
+        if (!validInfluencerIds.has(dist.influencerId)) {
+          throw { 
+            status: 400, 
+            message: `Influencer ${dist.influencerId} does not have an approved submission` 
+          };
+        }
+        
+        const amount = parseFloat(dist.amount);
+        totalDistribution += amount;
+        validDistributions.push({
+          influencerId: dist.influencerId,
+          amount,
+          rank: dist.rank || null,
+        });
+      }
+      
+      if (totalDistribution > escrow.totalPrizePool) {
+        throw { 
+          status: 400, 
+          message: `Total distribution (₹${totalDistribution}) exceeds prize pool (₹${escrow.totalPrizePool})` 
+        };
+      }
+
+      const updated = await tx.escrow.update({
+        where: { id: escrowId },
+        data: {
+          status: 'RELEASED',
+          releasedAt: new Date(),
+          releaseDetails: validDistributions,
+          notes: `Released ₹${totalDistribution} to ${validDistributions.length} winners`,
+        },
+      });
+
+      await tx.campaign.update({
+        where: { id: escrow.campaignId },
+        data: { status: 'COMPLETED' },
+      });
+
+      await tx.adminAction.create({
+        data: {
+          performedBy: adminId,
+          actionType: 'RELEASE_ESCROW',
+          targetType: 'Escrow',
+          targetId: escrowId,
+          previousState: { status: 'FUNDED' },
+          newState: { 
+            status: 'RELEASED', 
+            totalDistributed: totalDistribution,
+            winners: validDistributions.length 
+          },
+        },
+      });
+      
+      return { escrow: updated, totalDistribution, winners: validDistributions.length };
     });
 
-    await prisma.campaign.update({
-      where: { id: escrow.campaignId },
-      data: { status: 'COMPLETED' },
-    });
-
-    await prisma.adminAction.create({
-      data: {
-        performedBy: adminId,
-        actionType: 'RELEASE_ESCROW',
-        targetType: 'Escrow',
-        targetId: escrowId,
+    await logAuditEvent({
+      eventType: AuditEventType.ESCROW_RELEASED,
+      userId: adminId,
+      targetType: 'ESCROW',
+      targetId: escrowId,
+      metadata: { 
+        totalDistribution: result.totalDistribution, 
+        winners: result.winners 
       },
+      ...context,
+      severity: 'CRITICAL',
     });
 
     res.json({
-      message: "Escrow released to winners",
-      escrow: updated,
+      message: `Escrow released to ${result.winners} winners`,
+      escrow: result.escrow,
+      totalDistributed: result.totalDistribution,
     });
   } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ message: error.message });
+    }
     console.error("Release Escrow Error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// Admin: Refund escrow to brand
 export const refundEscrow = async (req, res) => {
   try {
     const { escrowId } = req.params;
@@ -373,12 +482,10 @@ export const refundEscrow = async (req, res) => {
   }
 };
 
-// Get platform bank details (for campaigns without escrow or for "pay later")
 export const getPlatformBankDetails = async (req, res) => {
   res.json({ bankDetails: PLATFORM_BANK_DETAILS });
 };
 
-// Get my pending escrows (brand can see their own pending payments)
 export const getMyPendingEscrows = async (req, res) => {
   try {
     const escrows = await prisma.escrow.findMany({

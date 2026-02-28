@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 export default function HeroSectionNew() {
   return (
     <section className="relative min-h-screen pt-20 overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-red-600">
-      {/* Decorative elements */}
+      {}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
@@ -14,7 +14,7 @@ export default function HeroSectionNew() {
       <div className="relative max-w-7xl mx-auto px-6 py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-180px)]">
           
-          {/* Left side - Content */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -67,14 +67,14 @@ export default function HeroSectionNew() {
             </motion.div>
           </motion.div>
 
-          {/* Right side - Visual with person and floating cards */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative h-[600px] hidden lg:flex items-center justify-center"
           >
-            {/* Dotted grid pattern background */}
+            {}
             <div 
               className="absolute inset-0 opacity-40"
               style={{
@@ -83,7 +83,7 @@ export default function HeroSectionNew() {
               }}
             />
 
-            {/* Central person image */}
+            {}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -100,7 +100,7 @@ export default function HeroSectionNew() {
               />
             </motion.div>
 
-            {/* Floating Card 1 - Top Right - Campaign Participation */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -121,7 +121,7 @@ export default function HeroSectionNew() {
               </div>
             </motion.div>
 
-            {/* Floating Card 2 - Left - Creator Joined */}
+            {}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -130,7 +130,7 @@ export default function HeroSectionNew() {
             >
               <div className="flex items-center gap-3">
                 <img 
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
+                  src="https://ui-avatars.com/api/?name=Sarah&background=4F46E5&color=fff"
                   alt="Creator"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -141,7 +141,7 @@ export default function HeroSectionNew() {
               </div>
             </motion.div>
 
-            {/* Floating Card 3 - Bottom Right - Earnings */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -159,7 +159,7 @@ export default function HeroSectionNew() {
               </div>
             </motion.div>
 
-            {/* Decorative elements */}
+            {}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}

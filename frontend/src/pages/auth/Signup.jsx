@@ -315,15 +315,31 @@ const Signup = () => {
             
             <div>
               <label className="block text-sm font-semibold text-neutral-900 mb-2">Confirm Password *</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••••"
-                required
-                className="w-full border border-neutral-300 rounded-lg px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-              />
+              <div className="relative">
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••••"
+                  required
+                  className={`w-full border rounded-lg px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 ${
+                    formData.confirmPassword && formData.password !== formData.confirmPassword
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : formData.confirmPassword && formData.password === formData.confirmPassword
+                      ? 'border-green-500 focus:border-green-500 focus:ring-green-500'
+                      : 'border-neutral-300 focus:border-neutral-900 focus:ring-neutral-900'
+                  }`}
+                />
+                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Check className="w-5 h-5 text-green-500" />
+                  </div>
+                )}
+              </div>
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+              )}
             </div>
 
             <div className="flex items-start gap-2 pt-2">

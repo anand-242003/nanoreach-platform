@@ -8,8 +8,7 @@ import {
   Target, Award, FileText
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, verificationStatus } = useSelector((state) => state.auth);
@@ -70,7 +69,6 @@ export default function Dashboard() {
   return <InfluencerDashboard campaigns={campaigns} isVerified={isVerified} user={user} navigate={navigate} verificationStatus={verificationStatus} />;
 }
 
-// Admin Dashboard
 function AdminDashboard({ stats, campaigns, navigate }) {
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -146,7 +144,6 @@ function AdminDashboard({ stats, campaigns, navigate }) {
   );
 }
 
-// Brand Dashboard
 function BrandDashboard({ campaigns, isVerified, navigate, verificationStatus }) {
   if (!isVerified) {
     return (
@@ -202,7 +199,6 @@ function BrandDashboard({ campaigns, isVerified, navigate, verificationStatus })
   );
 }
 
-// Influencer Dashboard
 function InfluencerDashboard({ campaigns, isVerified, user, navigate, verificationStatus }) {
   if (!isVerified) {
     return (
@@ -265,7 +261,6 @@ function InfluencerDashboard({ campaigns, isVerified, user, navigate, verificati
   );
 }
 
-// Stat Card Component
 function StatCard({ title, value, icon: Icon, onClick, clickable }) {
   return (
     <div
@@ -282,7 +277,6 @@ function StatCard({ title, value, icon: Icon, onClick, clickable }) {
   );
 }
 
-// Verification Required Component
 function VerificationRequired({ status, navigate }) {
   const config = {
     PENDING: {

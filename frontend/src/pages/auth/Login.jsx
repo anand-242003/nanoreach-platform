@@ -56,7 +56,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel */}
+      {}
       <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 relative overflow-hidden">
         <div className="absolute inset-0">
           <motion.div
@@ -82,7 +82,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right Panel */}
+      {}
       <div className="flex-1 bg-white flex items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -99,7 +99,7 @@ const Login = () => {
             <p className="text-neutral-600">Enter your credentials to continue</p>
           </div>
 
-          {/* Test Accounts Info */}
+          {}
           <div className="mb-6 p-4 bg-neutral-100 rounded-lg text-sm">
             <p className="font-semibold mb-2">Test Accounts:</p>
             <p className="text-neutral-600">Admin: admin@drkmttr.com</p>

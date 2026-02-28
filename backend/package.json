@@ -7,7 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "verify": "node src/verify-security.js",
+    "prestart": "node src/verify-security.js",
+    "setup-admin": "node scripts/setupAdmin.js",
+    "verify-admin": "node scripts/verifyAdminEmail.js"
   },
   "keywords": [],
   "author": "",
@@ -21,9 +25,11 @@
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "express-rate-limit": "^8.2.1",
+    "googleapis": "^170.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "nodemailer": "^6.9.15",
     "xss": "^1.0.15"
   },
   "devDependencies": {

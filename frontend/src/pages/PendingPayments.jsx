@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { DollarSign, Clock, Copy, CheckCircle, Loader2 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function PendingPayments() {
   const navigate = useNavigate();
   const [escrows, setEscrows] = useState([]);

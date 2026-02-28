@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '@/store/authSlice';
 import { 
   Home, Target, FileText, LogOut, Menu, X,
-  Building2, Sparkles, Plus, DollarSign
+  Building2, Sparkles, Plus, DollarSign, ClipboardList, Users
 } from 'lucide-react';
 import { useState } from 'react';
 import VerificationBanner from './VerificationBanner';
@@ -27,9 +27,10 @@ export default function Layout() {
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/verifications/influencers', icon: Sparkles, label: 'Influencer Verifications' },
     { to: '/admin/verifications/brands', icon: Building2, label: 'Brand Verifications' },
+    { to: '/admin/applications', icon: ClipboardList, label: 'Application Queue' },
     { to: '/admin/escrow', icon: DollarSign, label: 'Escrow Management' },
     { to: '/campaigns', icon: Target, label: 'All Campaigns' },
-    { to: '/admin/submissions', icon: FileText, label: 'Submission Reviews' }, // Added link for submission reviews
+    { to: '/admin/submissions', icon: FileText, label: 'Submission Reviews' },
   ];
 
   const brandLinks = [
@@ -42,6 +43,7 @@ export default function Layout() {
   const influencerLinks = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/campaigns', icon: Target, label: 'Browse Campaigns' },
+    { to: '/applications', icon: ClipboardList, label: 'My Applications' },
     { to: '/submissions', icon: FileText, label: 'My Activity' },
   ];
 
@@ -51,7 +53,7 @@ export default function Layout() {
     <div className="min-h-screen bg-neutral-50">
       {verificationStatus && verificationStatus !== 'VERIFIED' && !isAdmin && <VerificationBanner />}
       
-      {/* Mobile Menu Button */}
+      {}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
@@ -59,12 +61,12 @@ export default function Layout() {
         {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
-      {/* Sidebar */}
+      {}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
+          {}
           <div className="p-6 border-b">
             <Link to="/dashboard" className="text-2xl font-bold text-neutral-900">
               DRK<span className="text-neutral-400">/</span>MTTR
@@ -72,7 +74,7 @@ export default function Layout() {
             <p className="text-xs text-neutral-500 mt-1 capitalize">{user?.role?.toLowerCase()} Panel</p>
           </div>
 
-          {/* Navigation */}
+          {}
           <nav className="flex-1 p-4 space-y-1">
             {links.map((link) => {
               const isActive = location.pathname === link.to || location.pathname.startsWith(link.to + '/');
@@ -94,7 +96,7 @@ export default function Layout() {
             })}
           </nav>
 
-          {/* User Info & Logout */}
+          {}
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-4 px-2">
               <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
@@ -116,7 +118,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
+      {}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
@@ -124,7 +126,7 @@ export default function Layout() {
         />
       )}
 
-      {/* Main Content */}
+      {}
       <main className="lg:ml-64">
         <Outlet />
       </main>

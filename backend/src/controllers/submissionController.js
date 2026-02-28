@@ -1,4 +1,11 @@
 import prisma from "../config/db.js";
+import { logAuditEvent, AuditEventType } from "../utils/auditLogger.js";
+import { isValidUrl, sanitizeString } from "../utils/validators.js";
+import { verifyYouTubeMetrics, createMetricsSnapshot } from "../services/youtubeVerificationService.js";
+import { calculateFraudScore, createFraudAlert, getFraudAlerts, reviewFraudAlert } from "../services/fraudDetectionService.js";
+
+const SUPPORTED_PLATFORMS = ['YOUTUBE'];
+const SUPPORTED_CONTENT_TYPES = ['VIDEO', 'SHORT'];
 
 const isSubmissionWindowOpen = (campaign) => {
   const now = new Date();
@@ -9,11 +16,32 @@ const isSubmissionWindowOpen = (campaign) => {
 
 export const createSubmission = async (req, res) => {
   try {
-    const { campaignId, contentUrl } = req.body;
+    const { campaignId, contentUrl, socialPlatform, contentType } = req.body;
     const influencerId = req.user.id;
 
     if (!campaignId || !contentUrl) {
       return res.status(400).json({ message: "Campaign ID and content URL are required" });
+    }
+
+    const platform = socialPlatform?.toUpperCase() || 'YOUTUBE';
+    const type = contentType?.toUpperCase() || 'VIDEO';
+
+    if (!SUPPORTED_PLATFORMS.includes(platform)) {
+      return res.status(400).json({ 
+        message: "Invalid social platform",
+        supportedPlatforms: SUPPORTED_PLATFORMS
+      });
+    }
+
+    if (!SUPPORTED_CONTENT_TYPES.includes(type)) {
+      return res.status(400).json({ 
+        message: "Invalid content type",
+        supportedTypes: SUPPORTED_CONTENT_TYPES
+      });
+    }
+
+    if (!isValidUrl(contentUrl)) {
+      return res.status(400).json({ message: "Invalid content URL format" });
     }
 
     const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
@@ -48,14 +76,86 @@ export const createSubmission = async (req, res) => {
     }
 
     const submission = await prisma.submission.create({
-      data: { campaignId, influencerId, contentUrl, socialPlatform: 'YOUTUBE', contentType: 'VIDEO', validationStatus: 'PENDING' },
+      data: { 
+        campaignId, 
+        influencerId, 
+        contentUrl, 
+        socialPlatform: platform, 
+        contentType: type, 
+        validationStatus: 'PENDING' 
+      },
     });
 
     await prisma.leaderboardEntry.create({
       data: { campaignId, submissionId: submission.id, engagementScore: 0, referralScore: 0, qualityScore: 0, totalScore: 0 },
     });
 
-    res.status(201).json({ message: "Submission received!", submission });
+    await logAuditEvent({
+      eventType: AuditEventType.SUBMISSION_CREATED,
+      userId: influencerId,
+      metadata: {
+        submissionId: submission.id,
+        campaignId,
+        platform,
+        contentType: type
+      },
+      severity: 'LOW'
+    });
+
+    let verificationResult = null;
+    if (platform === 'YOUTUBE') {
+      try {
+        const verified = await verifyYouTubeMetrics(contentUrl);
+        
+        if (verified.verified) {
+          
+          const fraudCheck = await calculateFraudScore(
+            submission, 
+            verified.metrics, 
+            verified.metadata.publishedAt
+          );
+
+          await createMetricsSnapshot(submission.id, verified, fraudCheck);
+
+          await prisma.submission.update({
+            where: { id: submission.id },
+            data: {
+              metrics: verified.metrics
+            }
+          });
+
+          if (fraudCheck.fraudScore >= 30) {
+            await createFraudAlert(submission.id, fraudCheck);
+          }
+          
+          verificationResult = {
+            verified: true,
+            videoTitle: verified.metadata.title,
+            metrics: verified.metrics,
+            fraudScore: fraudCheck.fraudScore,
+            riskLevel: fraudCheck.riskLevel,
+            recommendation: fraudCheck.recommendation
+          };
+        } else {
+          verificationResult = {
+            verified: false,
+            error: verified.error
+          };
+        }
+      } catch (verifyError) {
+        console.error('Auto-verification failed:', verifyError);
+        verificationResult = {
+          verified: false,
+          error: 'Verification service error'
+        };
+      }
+    }
+
+    res.status(201).json({ 
+      message: "Submission received!", 
+      submission,
+      verification: verificationResult
+    });
   } catch (error) {
     console.error("Create Submission Error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -156,7 +256,6 @@ export const getCampaignLeaderboard = async (req, res) => {
     const isAdmin = req.user.role === 'ADMIN';
     const isBrand = req.user.role === 'BRAND' && campaign.brandId === req.user.id;
 
-    // Only admin can see leaderboard before results, or after reveal
     if (!isAdmin && campaign.status !== 'COMPLETED') {
       return res.json({ 
         leaderboard: [],
@@ -225,7 +324,7 @@ export const getSubmissionWindowStatus = async (req, res) => {
 export const revealLeaderboard = async (req, res) => {
   try {
     const { campaignId } = req.params;
-    const { prizeAmounts } = req.body; // { 1: 100000, 2: 50000, 3: 25000 }
+    const { prizeAmounts } = req.body; 
 
     await prisma.leaderboardEntry.updateMany({ where: { campaignId }, data: { isRevealed: true } });
 
@@ -271,4 +370,410 @@ export const getInfluencerFeedback = async (req, res) => {
   }
 };
 
+export const updateSubmissionMetrics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { metrics } = req.body;
 
+    if (!metrics || typeof metrics !== 'object') {
+      return res.status(400).json({ message: "Valid metrics object required" });
+    }
+
+    const allowedMetrics = ['views', 'likes', 'comments', 'shares', 'watchTime', 'engagement', 'reach', 'impressions'];
+    const invalidMetrics = Object.keys(metrics).filter(key => !allowedMetrics.includes(key));
+    
+    if (invalidMetrics.length > 0) {
+      return res.status(400).json({ 
+        message: "Invalid metric fields",
+        invalidFields: invalidMetrics,
+        allowedFields: allowedMetrics
+      });
+    }
+
+    for (const [key, value] of Object.entries(metrics)) {
+      if (typeof value !== 'number' || value < 0) {
+        return res.status(400).json({ 
+          message: `Invalid value for ${key}: must be a positive number` 
+        });
+      }
+    }
+
+    const submission = await prisma.submission.findUnique({
+      where: { id },
+      select: { id: true, campaignId: true, influencerId: true, metrics: true }
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const updatedMetrics = {
+      ...(submission.metrics || {}),
+      ...metrics,
+      updatedBy: req.user.id,
+      updatedAt: new Date().toISOString()
+    };
+
+    await prisma.submission.update({
+      where: { id },
+      data: { metrics: updatedMetrics }
+    });
+
+    await logAuditEvent({
+      eventType: AuditEventType.SUBMISSION_METRICS_UPDATED,
+      userId: req.user.id,
+      metadata: {
+        submissionId: id,
+        campaignId: submission.campaignId,
+        metrics: metrics
+      },
+      severity: 'MEDIUM'
+    });
+
+    res.json({ 
+      message: "Metrics updated successfully",
+      metrics: updatedMetrics
+    });
+  } catch (error) {
+    console.error("Update Metrics Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const validateSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+
+    if (!status || !['APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ 
+        message: "Status must be APPROVED or REJECTED" 
+      });
+    }
+
+    const submission = await prisma.submission.findUnique({
+      where: { id },
+      include: { campaign: { select: { id: true, title: true } } }
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    if (submission.validationStatus !== 'PENDING') {
+      return res.status(400).json({ 
+        message: `Submission already ${submission.validationStatus.toLowerCase()}` 
+      });
+    }
+
+    await prisma.submission.update({
+      where: { id },
+      data: {
+        validationStatus: status,
+        adminNotes: sanitizeString(notes || ''),
+        validatedBy: req.user.id,
+        validatedAt: new Date()
+      }
+    });
+
+    await logAuditEvent({
+      eventType: status === 'APPROVED' 
+        ? AuditEventType.SUBMISSION_APPROVED 
+        : AuditEventType.SUBMISSION_REJECTED,
+      userId: req.user.id,
+      metadata: {
+        submissionId: id,
+        campaignId: submission.campaignId,
+        notes: notes || ''
+      },
+      severity: 'MEDIUM'
+    });
+
+    res.json({ 
+      message: `Submission ${status.toLowerCase()} successfully`,
+      status
+    });
+  } catch (error) {
+    console.error("Validate Submission Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const flagSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { flags, reason } = req.body;
+
+    if (!flags || !Array.isArray(flags) || flags.length === 0) {
+      return res.status(400).json({ 
+        message: "At least one fraud flag is required" 
+      });
+    }
+
+    const allowedFlags = [
+      'FAKE_VIEWS',
+      'FAKE_ENGAGEMENT',
+      'BOT_TRAFFIC',
+      'DUPLICATE_CONTENT',
+      'MISLEADING_METRICS',
+      'POLICY_VIOLATION',
+      'SUSPICIOUS_ACTIVITY',
+      'OTHER'
+    ];
+
+    const invalidFlags = flags.filter(flag => !allowedFlags.includes(flag));
+    if (invalidFlags.length > 0) {
+      return res.status(400).json({ 
+        message: "Invalid fraud flags",
+        invalidFlags,
+        allowedFlags
+      });
+    }
+
+    const submission = await prisma.submission.findUnique({
+      where: { id },
+      select: { id: true, campaignId: true, influencerId: true, fraudFlags: true }
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const existingFlags = submission.fraudFlags || [];
+    const newFlags = [...new Set([...existingFlags, ...flags])];
+
+    await prisma.submission.update({
+      where: { id },
+      data: {
+        fraudFlags: newFlags,
+        adminNotes: reason ? sanitizeString(reason) : submission.adminNotes,
+        validationStatus: 'REJECTED' 
+      }
+    });
+
+    await logAuditEvent({
+      eventType: AuditEventType.SUBMISSION_FLAGGED,
+      userId: req.user.id,
+      metadata: {
+        submissionId: id,
+        campaignId: submission.campaignId,
+        flags: newFlags,
+        reason: reason || ''
+      },
+      severity: 'HIGH'
+    });
+
+    res.json({ 
+      message: "Submission flagged successfully",
+      flags: newFlags,
+      status: 'REJECTED'
+    });
+  } catch (error) {
+    console.error("Flag Submission Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getPendingSubmissions = async (req, res) => {
+  try {
+    const { campaignId } = req.query;
+    
+    const where = { validationStatus: 'PENDING' };
+    if (campaignId) {
+      where.campaignId = campaignId;
+    }
+
+    const submissions = await prisma.submission.findMany({
+      where,
+      include: {
+        campaign: {
+          select: { id: true, title: true, brandId: true }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const result = await Promise.all(submissions.map(async (sub) => {
+      const profile = await prisma.influencerProfile.findUnique({
+        where: { userId: sub.influencerId },
+        select: { 
+          displayName: true, 
+          profileImage: true, 
+          youtubeChannelUrl: true,
+          subscriberCount: true
+        },
+      });
+      return { ...sub, influencer: profile };
+    }));
+
+    res.json({ 
+      count: result.length,
+      submissions: result 
+    });
+  } catch (error) {
+    console.error("Get Pending Submissions Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const reverifySubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const submission = await prisma.submission.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        contentUrl: true,
+        socialPlatform: true,
+        influencerId: true,
+        campaignId: true
+      }
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    if (submission.socialPlatform !== 'YOUTUBE') {
+      return res.status(400).json({ 
+        message: "Auto-verification only supported for YouTube",
+        platform: submission.socialPlatform
+      });
+    }
+
+    const verified = await verifyYouTubeMetrics(submission.contentUrl);
+
+    if (!verified.verified) {
+      return res.status(400).json({ 
+        message: "Verification failed",
+        error: verified.error
+      });
+    }
+
+    const fraudCheck = await calculateFraudScore(
+      submission,
+      verified.metrics,
+      verified.metadata.publishedAt
+    );
+
+    await createMetricsSnapshot(submission.id, verified, fraudCheck);
+
+    await prisma.submission.update({
+      where: { id },
+      data: {
+        metrics: verified.metrics
+      }
+    });
+
+    if (fraudCheck.fraudScore >= 30) {
+      await createFraudAlert(submission.id, fraudCheck);
+    }
+
+    await logAuditEvent({
+      eventType: AuditEventType.SUBMISSION_METRICS_UPDATED,
+      userId: req.user.id,
+      metadata: {
+        submissionId: id,
+        campaignId: submission.campaignId,
+        verificationType: 'MANUAL_REVERIFICATION',
+        fraudScore: fraudCheck.fraudScore
+      },
+      severity: fraudCheck.riskLevel === 'CRITICAL' || fraudCheck.riskLevel === 'HIGH' ? 'HIGH' : 'MEDIUM'
+    });
+
+    res.json({
+      message: "Verification complete",
+      verified: true,
+      videoTitle: verified.metadata.title,
+      metrics: verified.metrics,
+      fraudScore: fraudCheck.fraudScore,
+      riskLevel: fraudCheck.riskLevel,
+      recommendation: fraudCheck.recommendation,
+      checks: fraudCheck.checks
+    });
+
+  } catch (error) {
+    console.error("Reverify Submission Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAdminFraudAlerts = async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    const alerts = await getFraudAlerts(status);
+
+    res.json({
+      count: alerts.length,
+      alerts
+    });
+  } catch (error) {
+    console.error("Get Fraud Alerts Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const reviewAdminFraudAlert = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, notes } = req.body; 
+
+    if (!['confirm', 'dismiss'].includes(action)) {
+      return res.status(400).json({ 
+        message: "Invalid action",
+        allowedActions: ['confirm', 'dismiss']
+      });
+    }
+
+    const alert = await reviewFraudAlert(id, req.user.id, action, notes);
+
+    await logAuditEvent({
+      eventType: action === 'confirm' ? AuditEventType.SUBMISSION_FLAGGED : AuditEventType.SUBMISSION_APPROVED,
+      userId: req.user.id,
+      metadata: {
+        fraudAlertId: id,
+        submissionId: alert.submissionId,
+        action,
+        notes
+      },
+      severity: action === 'confirm' ? 'HIGH' : 'LOW'
+    });
+
+    res.json({
+      message: `Fraud alert ${action}ed successfully`,
+      alert
+    });
+  } catch (error) {
+    console.error("Review Fraud Alert Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getVerificationHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const snapshots = await prisma.metricsSnapshot.findMany({
+      where: { submissionId: id },
+      orderBy: { capturedAt: 'desc' },
+      take: 30
+    });
+
+    const fraudAlerts = await prisma.fraudAlert.findMany({
+      where: { submissionId: id },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      submissionId: id,
+      snapshotsCount: snapshots.length,
+      snapshots,
+      fraudAlerts
+    });
+  } catch (error) {
+    console.error("Get Verification History Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

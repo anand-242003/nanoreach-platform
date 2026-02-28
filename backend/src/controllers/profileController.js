@@ -66,6 +66,22 @@ export const createBrandProfile = async (req, res) => {
       return res.status(400).json({ message: 'Profile already exists' });
     }
 
+    if (!companyName || !website || !industry || !panNumber) {
+      return res.status(400).json({ 
+        message: 'Company name, website, industry, and PAN number are required',
+        missingFields: {
+          companyName: !companyName,
+          website: !website,
+          industry: !industry,
+          panNumber: !panNumber,
+        }
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Business document is required for verification' });
+    }
+
     const profile = await prisma.brandProfile.create({
       data: {
         userId,
@@ -73,8 +89,8 @@ export const createBrandProfile = async (req, res) => {
         website,
         industry,
         gstNumber: gstNumber || null,
-        panNumber: panNumber || null,
-        businessDocument: req.file ? req.file.path : null,
+        panNumber,
+        businessDocument: req.file.path,
       }
     });
 
@@ -84,7 +100,7 @@ export const createBrandProfile = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Profile created successfully',
+      message: 'Profile created successfully and submitted for verification',
       profile
     });
   } catch (error) {

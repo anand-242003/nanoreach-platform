@@ -4,10 +4,10 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seeding...\n');
+  console.log('Starting database seeding...\n');
 
   // Clear existing data (optional - comment out if you want to keep existing data)
-  console.log('🗑️ Clearing existing data...');
+  console.log('Clearing existing data...');
   await prisma.adminAction.deleteMany();
   await prisma.click.deleteMany();
   await prisma.referralLink.deleteMany();
@@ -25,7 +25,7 @@ async function main() {
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   // ========== CREATE ADMIN ==========
-  console.log('👤 Creating admin user...');
+  console.log('Creating admin user...');
   const admin = await prisma.user.create({
     data: {
       email: 'admin@drkmttr.com',
@@ -35,10 +35,10 @@ async function main() {
       verificationStatus: 'VERIFIED',
     },
   });
-  console.log(`   ✓ Admin: ${admin.email}`);
+  console.log(`   Admin: ${admin.email}`);
 
   // ========== CREATE VERIFIED BRANDS ==========
-  console.log('\n🏢 Creating brand users...');
+  console.log('\nCreating brand users...');
   
   const brand1 = await prisma.user.create({
     data: {
@@ -63,7 +63,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Brand: ${brand1.email} (VERIFIED)`);
+  console.log(`   Brand: ${brand1.email} (VERIFIED)`);
 
   const brand2 = await prisma.user.create({
     data: {
@@ -88,7 +88,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Brand: ${brand2.email} (VERIFIED)`);
+  console.log(`   Brand: ${brand2.email} (VERIFIED)`);
 
   const brand3 = await prisma.user.create({
     data: {
@@ -110,7 +110,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Brand: ${brand3.email} (UNDER_REVIEW)`);
+  console.log(`   Brand: ${brand3.email} (UNDER_REVIEW)`);
 
   const brand4 = await prisma.user.create({
     data: {
@@ -121,10 +121,10 @@ async function main() {
       verificationStatus: 'PENDING',
     },
   });
-  console.log(`   ✓ Brand: ${brand4.email} (PENDING - no profile)`);
+  console.log(`   Brand: ${brand4.email} (PENDING - no profile)`);
 
   // ========== CREATE VERIFIED INFLUENCERS ==========
-  console.log('\n🌟 Creating influencer users...');
+  console.log('\nCreating influencer users...');
 
   const influencer1 = await prisma.user.create({
     data: {
@@ -154,7 +154,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Influencer: ${influencer1.email} (VERIFIED)`);
+  console.log(`   Influencer: ${influencer1.email} (VERIFIED)`);
 
   const influencer2 = await prisma.user.create({
     data: {
@@ -183,7 +183,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Influencer: ${influencer2.email} (VERIFIED)`);
+  console.log(`   Influencer: ${influencer2.email} (VERIFIED)`);
 
   const influencer3 = await prisma.user.create({
     data: {
@@ -207,7 +207,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Influencer: ${influencer3.email} (UNDER_REVIEW)`);
+  console.log(`   Influencer: ${influencer3.email} (UNDER_REVIEW)`);
 
   const influencer4 = await prisma.user.create({
     data: {
@@ -218,7 +218,7 @@ async function main() {
       verificationStatus: 'PENDING',
     },
   });
-  console.log(`   ✓ Influencer: ${influencer4.email} (PENDING - no profile)`);
+  console.log(`   Influencer: ${influencer4.email} (PENDING - no profile)`);
 
   const influencer5 = await prisma.user.create({
     data: {
@@ -242,10 +242,10 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Influencer: ${influencer5.email} (REJECTED)`);
+  console.log(`   Influencer: ${influencer5.email} (REJECTED)`);
 
   // ========== CREATE CAMPAIGNS ==========
-  console.log('\n📢 Creating campaigns...');
+  console.log('\nCreating campaigns...');
 
   const nikeProfile = await prisma.brandProfile.findUnique({ where: { userId: brand1.id } });
   const samsungProfile = await prisma.brandProfile.findUnique({ where: { userId: brand2.id } });
@@ -283,7 +283,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Campaign: ${campaign1.title} (ACTIVE)`);
+  console.log(`   Campaign: ${campaign1.title} (ACTIVE)`);
 
   const campaign2 = await prisma.campaign.create({
     data: {
@@ -318,7 +318,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Campaign: ${campaign2.title} (ACTIVE)`);
+  console.log(`   Campaign: ${campaign2.title} (ACTIVE)`);
 
   const campaign3 = await prisma.campaign.create({
     data: {
@@ -334,7 +334,7 @@ async function main() {
       brandId: brand1.id,
     },
   });
-  console.log(`   ✓ Campaign: ${campaign3.title} (DRAFT)`);
+  console.log(`   Campaign: ${campaign3.title} (DRAFT)`);
 
   const campaign4 = await prisma.campaign.create({
     data: {
@@ -351,10 +351,10 @@ async function main() {
       brandId: brand2.id,
     },
   });
-  console.log(`   ✓ Campaign: ${campaign4.title} (COMPLETED)`);
+  console.log(`   Campaign: ${campaign4.title} (COMPLETED)`);
 
   // ========== CREATE APPLICATIONS ==========
-  console.log('\n📝 Creating applications...');
+  console.log('\nCreating applications...');
 
   const techguruProfile = await prisma.influencerProfile.findUnique({ where: { userId: influencer1.id } });
   const fitnessProfile = await prisma.influencerProfile.findUnique({ where: { userId: influencer2.id } });
@@ -380,7 +380,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Application: TechGuru → Nike Campaign (APPROVED)`);
+  console.log(`   Application: TechGuru -> Nike Campaign (APPROVED)`);
 
   const application2 = await prisma.application.create({
     data: {
@@ -403,7 +403,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Application: TechGuru → Samsung Campaign (APPROVED)`);
+  console.log(`   Application: TechGuru -> Samsung Campaign (APPROVED)`);
 
   const application3 = await prisma.application.create({
     data: {
@@ -414,10 +414,10 @@ async function main() {
       proposedContent: 'Gym outfit of the day + street style + comfort review',
     },
   });
-  console.log(`   ✓ Application: FitnessFirst → Nike Campaign (PENDING)`);
+  console.log(`   Application: FitnessFirst -> Nike Campaign (PENDING)`);
 
   // ========== CREATE SUBMISSIONS ==========
-  console.log('\n🎬 Creating submissions...');
+  console.log('\nCreating submissions...');
 
   const submission1 = await prisma.submission.create({
     data: {
@@ -456,7 +456,7 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Submission: TechGuru → Nike Campaign (Score: 85.5)`);
+  console.log(`   Submission: TechGuru -> Nike Campaign (Score: 85.5)`);
 
   const submission2 = await prisma.submission.create({
     data: {
@@ -492,10 +492,10 @@ async function main() {
       },
     },
   });
-  console.log(`   ✓ Submission: TechGuru → Samsung Campaign (Score: 81.8)`);
+  console.log(`   Submission: TechGuru -> Samsung Campaign (Score: 81.8)`);
 
   // ========== CREATE ADMIN ACTIONS ==========
-  console.log('\n📋 Creating admin actions...');
+  console.log('\nCreating admin actions...');
 
   await prisma.adminAction.createMany({
     data: [
@@ -546,13 +546,13 @@ async function main() {
       },
     ],
   });
-  console.log(`   ✓ Created 5 admin action logs`);
+  console.log(`   Created 5 admin action logs`);
 
   // ========== SUMMARY ==========
   console.log('\n' + '='.repeat(50));
-  console.log('✅ SEEDING COMPLETE!');
+  console.log('SEEDING COMPLETE!');
   console.log('='.repeat(50));
-  console.log('\n📊 Data Summary:');
+  console.log('\nData Summary:');
   console.log(`   • Users: ${await prisma.user.count()}`);
   console.log(`   • Influencer Profiles: ${await prisma.influencerProfile.count()}`);
   console.log(`   • Brand Profiles: ${await prisma.brandProfile.count()}`);
@@ -562,7 +562,7 @@ async function main() {
   console.log(`   • Escrows: ${await prisma.escrow.count()}`);
   console.log(`   • Admin Actions: ${await prisma.adminAction.count()}`);
 
-  console.log('\n🔐 Test Credentials (password: password123):');
+  console.log('\nTest Credentials (password: password123):');
   console.log('   Admin:      admin@drkmttr.com');
   console.log('   Brand:      nike@brand.com (VERIFIED)');
   console.log('   Brand:      samsung@brand.com (VERIFIED)');
@@ -577,7 +577,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error('Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

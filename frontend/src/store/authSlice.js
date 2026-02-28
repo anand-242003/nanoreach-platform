@@ -10,7 +10,6 @@ const initialState = {
   initialized: false,
 };
 
-// Async Thunks
 export const signup = createAsyncThunk(
   'auth/signup',
   async (userData, { rejectWithValue }) => {
@@ -80,7 +79,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Signup
+      
       .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -96,8 +95,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
-      // Login
+
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -114,8 +112,7 @@ const authSlice = createSlice({
         state.error = action.payload;
         state.initialized = true;
       })
-      
-      // Logout
+
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
@@ -123,8 +120,7 @@ const authSlice = createSlice({
         state.error = null;
         state.initialized = true;
       })
-      
-      // Get Me
+
       .addCase(getMe.pending, (state) => {
         state.loading = true;
       })
@@ -142,8 +138,7 @@ const authSlice = createSlice({
         state.verificationStatus = null;
         state.initialized = true;
       })
-      
-      // Fetch Verification Status
+
       .addCase(fetchVerificationStatus.fulfilled, (state, action) => {
         state.verificationStatus = action.payload.verificationStatus || 'PENDING';
         if (state.user) {

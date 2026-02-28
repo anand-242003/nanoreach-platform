@@ -9,8 +9,7 @@ import {
 import axios from 'axios';
 import { getMe } from '@/store/authSlice';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 const industries = ['E-commerce', 'SaaS', 'FMCG', 'Education', 'Healthcare', 'Finance', 'Retail', 'Media'];
 
@@ -25,8 +24,7 @@ export default function Onboarding() {
 
   const isInfluencer = user?.role === 'INFLUENCER';
   const isBrand = user?.role === 'BRAND';
-  
-  // Influencer form data
+
   const [influencerData, setInfluencerData] = useState({
     displayName: '',
     bio: '',
@@ -38,7 +36,6 @@ export default function Onboarding() {
     document: null,
   });
 
-  // Brand form data
   const [brandData, setBrandData] = useState({
     companyName: '',
     website: '',
@@ -72,7 +69,6 @@ export default function Onboarding() {
     }
   }, [verificationStatus, navigate]);
 
-  // Influencer handlers
   const handleInfluencerChange = (e) => {
     setInfluencerData({ ...influencerData, [e.target.name]: e.target.value });
   };
@@ -103,7 +99,6 @@ export default function Onboarding() {
     });
   };
 
-  // Brand handlers
   const handleBrandChange = (e) => {
     setBrandData({ ...brandData, [e.target.name]: e.target.value });
   };
@@ -275,7 +270,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
+      {}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -299,7 +294,7 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {/* Step Indicator */}
+          {}
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
@@ -328,7 +323,7 @@ export default function Onboarding() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="max-w-2xl mx-auto px-4 py-8">
         {error && (
           <motion.div
@@ -343,7 +338,7 @@ export default function Onboarding() {
 
         <div className="bg-white rounded-xl shadow-sm border p-8">
           <AnimatePresence mode="wait">
-            {/* INFLUENCER FORMS */}
+            {}
             {isInfluencer && (
               <>
                 {currentStep === 1 && (
@@ -378,7 +373,7 @@ export default function Onboarding() {
                       <label className="block text-sm font-semibold mb-2">Channel URL *</label>
                       <input type="url" name="youtubeChannelUrl" value={influencerData.youtubeChannelUrl} onChange={handleInfluencerChange}
                         className="w-full border border-neutral-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                        placeholder="https://youtube.com/@yourchannel" />
+                        placeholder="https://example.com" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-2">Channel ID (Optional)</label>
@@ -500,7 +495,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {/* BRAND FORMS */}
+            {}
             {isBrand && (
               <>
                 {currentStep === 1 && (
@@ -519,7 +514,7 @@ export default function Onboarding() {
                       <label className="block text-sm font-semibold mb-2">Website *</label>
                       <input type="url" name="website" value={brandData.website} onChange={handleBrandChange}
                         className="w-full border border-neutral-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                        placeholder="https://yourcompany.com" />
+                        placeholder="https://example.com" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-2">Industry *</label>
@@ -604,7 +599,7 @@ export default function Onboarding() {
             )}
           </AnimatePresence>
 
-          {/* Navigation */}
+          {}
           <div className="flex justify-between mt-8 pt-6 border-t">
             {currentStep > 1 ? (
               <button type="button" onClick={prevStep}

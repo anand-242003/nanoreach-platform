@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Search, Filter, Target, Calendar, DollarSign, Users } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function Campaigns() {
   const navigate = useNavigate();
   const { verificationStatus } = useSelector((state) => state.auth);

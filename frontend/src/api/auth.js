@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -9,26 +8,26 @@ const axiosInstance = axios.create({
 });
 
 export const signupAPI = async (userData) => {
-  const response = await axiosInstance.post('/auth/signup', userData);
+  const response = await axiosInstance.post('/api/auth/signup', userData);
   return response.data;
 };
 
 export const loginAPI = async (credentials) => {
-  const response = await axiosInstance.post('/auth/login', credentials);
+  const response = await axiosInstance.post('/api/auth/login', credentials);
   return response.data;
 };
 
 export const logoutAPI = async () => {
-  const response = await axiosInstance.post('/auth/logout');
+  const response = await axiosInstance.post('/api/auth/logout');
   return response.data;
 };
 
 export const getMeAPI = async () => {
-  const response = await axiosInstance.get('/auth/me');
+  const response = await axiosInstance.get('/api/auth/me');
   return response.data;
 };
 
 export const getVerificationStatusAPI = async () => {
-  const response = await axiosInstance.get('/auth/verification-status');
+  const response = await axiosInstance.get('/api/auth/verification-status');
   return response.data;
 };

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Loader2, DollarSign, Clock, Filter, Plus, Search, Target } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function MyCampaigns() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
