@@ -18,7 +18,7 @@ export default function EscrowManagement() {
 
   const fetchEscrows = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/escrow/pending`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/escrow/pending`, { withCredentials: true });
       setEscrows(data.escrows || []);
     } catch (error) {
     } finally {
@@ -29,7 +29,7 @@ export default function EscrowManagement() {
   const handleVerify = async (escrowId) => {
     setActionLoading(true);
     try {
-      await axios.post(`${API_URL}/escrow/${escrowId}/verify`, { notes }, { withCredentials: true });
+      await axios.post(`${API_URL}/api/escrow/${escrowId}/verify`, { notes }, { withCredentials: true });
       setSelectedEscrow(null);
       setNotes('');
       fetchEscrows();
@@ -47,7 +47,7 @@ export default function EscrowManagement() {
     }
     setActionLoading(true);
     try {
-      await axios.post(`${API_URL}/escrow/${escrowId}/reject`, { reason: notes }, { withCredentials: true });
+      await axios.post(`${API_URL}/api/escrow/${escrowId}/reject`, { reason: notes }, { withCredentials: true });
       setSelectedEscrow(null);
       setNotes('');
       fetchEscrows();
@@ -60,10 +60,10 @@ export default function EscrowManagement() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      PAYMENT_PENDING: 'bg-yellow-100 text-yellow-700',
-      FUNDED: 'bg-green-100 text-green-700',
+      PAYMENT_PENDING: 'bg-muted text-muted-foreground',
+      FUNDED: 'bg-primary/10 text-primary',
     };
-    return badges[status] || 'bg-neutral-100 text-neutral-700';
+    return badges[status] || 'bg-muted text-muted-foreground';
   };
 
   if (loading) {
@@ -77,14 +77,14 @@ export default function EscrowManagement() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900">Escrow Management</h1>
-        <p className="text-neutral-500 text-sm mt-1">Verify payments and manage campaign funds</p>
+        <h1 className="text-2xl font-bold text-foreground">Escrow Management</h1>
+        <p className="text-muted-foreground text-sm mt-1">Verify payments and manage campaign funds</p>
       </div>
 
       {escrows.length === 0 ? (
         <div className="bg-white border rounded-lg p-12 text-center">
-          <DollarSign className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-          <p className="text-neutral-500">No pending escrows</p>
+          <DollarSign className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No pending escrows</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -94,7 +94,7 @@ export default function EscrowManagement() {
                 key={escrow.id}
                 onClick={() => setSelectedEscrow(escrow)}
                 className={`bg-white border rounded-lg p-4 cursor-pointer ${
-                  selectedEscrow?.id === escrow.id ? 'ring-2 ring-neutral-900' : 'hover:border-neutral-400'
+                  selectedEscrow?.id === escrow.id ? 'ring-2 ring-primary' : 'hover:border-foreground/30'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -103,10 +103,10 @@ export default function EscrowManagement() {
                     {escrow.status}
                   </span>
                 </div>
-                <p className="text-sm text-neutral-500 mb-2">{escrow.campaign?.brand?.name}</p>
+                <p className="text-sm text-muted-foreground mb-2">{escrow.campaign?.brand?.name}</p>
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-green-600">₹{escrow.amount?.toLocaleString()}</span>
-                  <ArrowRight className="w-4 h-4 text-neutral-400" />
+                  <span className="font-bold text-primary">₹{escrow.amount?.toLocaleString()}</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
             ))}
@@ -118,24 +118,24 @@ export default function EscrowManagement() {
               
               <div className="space-y-3 mb-6">
                 <div>
-                  <label className="text-sm text-neutral-500">Campaign</label>
+                  <label className="text-sm text-muted-foreground">Campaign</label>
                   <p className="font-medium">{selectedEscrow.campaign?.title}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-500">Brand</label>
+                  <label className="text-sm text-muted-foreground">Brand</label>
                   <p className="font-medium">{selectedEscrow.campaign?.brand?.name}</p>
-                  <p className="text-sm text-neutral-500">{selectedEscrow.campaign?.brand?.email}</p>
+                  <p className="text-sm text-muted-foreground">{selectedEscrow.campaign?.brand?.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-500">Amount</label>
-                  <p className="text-2xl font-bold text-green-600">₹{selectedEscrow.amount?.toLocaleString()}</p>
+                  <label className="text-sm text-muted-foreground">Amount</label>
+                  <p className="text-2xl font-bold text-primary">₹{selectedEscrow.amount?.toLocaleString()}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-500">Payment Reference</label>
+                  <label className="text-sm text-muted-foreground">Payment Reference</label>
                   <p className="font-mono">{selectedEscrow.paymentReference || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-500">Status</label>
+                  <label className="text-sm text-muted-foreground">Status</label>
                   <p className={`inline-block px-2 py-1 text-xs rounded ${getStatusBadge(selectedEscrow.status)}`}>
                     {selectedEscrow.status}
                   </p>
@@ -145,7 +145,7 @@ export default function EscrowManagement() {
               {selectedEscrow.status === 'PAYMENT_PENDING' && (
                 <>
                   <div className="mb-4">
-                    <label className="text-sm text-neutral-500 block mb-2">Notes</label>
+                    <label className="text-sm text-muted-foreground block mb-2">Notes</label>
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -159,7 +159,7 @@ export default function EscrowManagement() {
                     <button
                       onClick={() => handleVerify(selectedEscrow.id)}
                       disabled={actionLoading}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                     >
                       {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                       Verify Payment

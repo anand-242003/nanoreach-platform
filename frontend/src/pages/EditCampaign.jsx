@@ -26,7 +26,7 @@ export default function EditCampaign() {
 
   const fetchCampaign = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/campaigns/${id}`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/campaigns/${id}`, { withCredentials: true });
       const campaign = data.campaign || data;
       setFormData({
         title: campaign.title || '',
@@ -54,7 +54,7 @@ export default function EditCampaign() {
     setError('');
 
     try {
-      await axios.put(`${API_URL}/campaigns/${id}`, formData, { withCredentials: true });
+      await axios.put(`${API_URL}/api/campaigns/${id}`, formData, { withCredentials: true });
       navigate(`/campaigns/${id}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update campaign');
@@ -73,11 +73,11 @@ export default function EditCampaign() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground mb-6 text-sm">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
-      <h1 className="text-2xl font-bold text-neutral-900 mb-8">Edit Campaign</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-8">Edit Campaign</h1>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -94,7 +94,7 @@ export default function EditCampaign() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function EditCampaign() {
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function EditCampaign() {
                 name="budget"
                 value={formData.budget}
                 onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
@@ -126,7 +126,7 @@ export default function EditCampaign() {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="DRAFT">Draft</option>
                 <option value="ACTIVE">Active</option>
@@ -137,13 +137,13 @@ export default function EditCampaign() {
         </div>
 
         <div className="flex gap-4">
-          <button type="button" onClick={() => navigate(-1)} className="flex-1 py-3 border rounded-lg hover:bg-neutral-50">
+          <button type="button" onClick={() => navigate(-1)} className="flex-1 py-3 border rounded-lg hover:bg-muted">
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             {saving ? 'Saving...' : 'Save Changes'}

@@ -205,7 +205,7 @@ export const getCampaignSubmissions = async (req, res) => {
 
 export const scoreSubmission = async (req, res) => {
   try {
-    const { submissionId } = req.params;
+    const submissionId = req.params.id || req.params.submissionId;
     const { engagementScore, referralScore, qualityScore, metrics, feedback } = req.body;
 
     const submission = await prisma.submission.findUnique({ where: { id: submissionId } });

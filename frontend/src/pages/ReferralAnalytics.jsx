@@ -73,7 +73,7 @@ export default function ReferralAnalytics() {
       <div className="container mx-auto py-8 px-4">
         <Card>
           <CardContent className="py-12 text-center">
-            <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
+            <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Data Available</h3>
             <p className="text-muted-foreground">
               Unable to load referral statistics
@@ -119,15 +119,15 @@ export default function ReferralAnalytics() {
         />
 
         {data.analytics.totalSuspicious > 0 && (
-          <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10">
+          <Card className="border-destructive/50 bg-destructive/5 dark:bg-destructive/10">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                <AlertTriangle className="h-5 w-5 text-destructive" />
                 <div>
-                  <p className="font-medium text-yellow-800 dark:text-yellow-400">
+                  <p className="font-medium text-destructive">
                     Suspicious Activity Detected
                   </p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-500">
+                  <p className="text-sm text-destructive/80 dark:text-destructive/70">
                     {data.analytics.totalSuspicious} suspicious clicks detected and filtered
                   </p>
                 </div>

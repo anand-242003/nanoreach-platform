@@ -235,7 +235,7 @@ export default function ApplicationQueue() {
                       Reject
                     </Button>
                     <Button
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-primary hover:bg-primary/90"
                       onClick={() => handleApprove(app)}
                       disabled={actionLoading === app.id}
                     >

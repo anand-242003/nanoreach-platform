@@ -21,28 +21,28 @@ export default function VerificationBanner() {
   const configs = {
     PENDING: {
       icon: AlertCircle,
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      iconColor: 'text-amber-500',
-      textColor: 'text-amber-800',
+      bg: 'bg-foreground',
+      border: 'border-transparent',
+      iconColor: 'text-primary',
+      textColor: 'text-background',
       title: 'Complete your profile',
       action: { text: 'Complete Profile', path: '/onboarding' },
     },
     UNDER_REVIEW: {
       icon: Clock,
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      iconColor: 'text-blue-500',
-      textColor: 'text-blue-800',
+      bg: 'bg-muted',
+      border: 'border-border',
+      iconColor: 'text-foreground',
+      textColor: 'text-foreground',
       title: 'Under Review',
       action: null,
     },
     REJECTED: {
       icon: XCircle,
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      iconColor: 'text-red-500',
-      textColor: 'text-red-800',
+      bg: 'bg-destructive/10',
+      border: 'border-destructive/30',
+      iconColor: 'text-destructive',
+      textColor: 'text-destructive',
       title: 'Verification Failed',
       action: { text: 'Update Profile', path: '/onboarding' },
     },
@@ -77,7 +77,7 @@ export default function VerificationBanner() {
                 </button>
               )}
               {verificationStatus !== 'UNDER_REVIEW' && (
-                <button onClick={() => setIsDismissed(true)} className="text-neutral-400 hover:text-neutral-600">
+                <button onClick={() => setIsDismissed(true)} className="text-muted-foreground hover:text-foreground">
                   <X className="w-4 h-4" />
                 </button>
               )}

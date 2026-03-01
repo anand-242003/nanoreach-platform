@@ -16,8 +16,8 @@ export default function PendingPayments() {
   const fetchData = async () => {
     try {
       const [escrowsRes, bankRes] = await Promise.all([
-        axios.get(`${API_URL}/escrow/my-pending`, { withCredentials: true }),
-        axios.get(`${API_URL}/escrow/bank-details`, { withCredentials: true }),
+        axios.get(`${API_URL}/api/escrow/my-pending`, { withCredentials: true }),
+        axios.get(`${API_URL}/api/escrow/bank-details`, { withCredentials: true }),
       ]);
       setEscrows(escrowsRes.data.escrows || []);
       setBankDetails(bankRes.data.bankDetails);
@@ -28,7 +28,7 @@ export default function PendingPayments() {
   const handleConfirm = async (campaignId) => {
     setConfirming(campaignId);
     try {
-      await axios.post(`${API_URL}/escrow/campaigns/${campaignId}/confirm-payment`, {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/escrow/campaigns/${campaignId}/confirm-payment`, {}, { withCredentials: true });
       fetchData();
     } catch (error) { alert(error.response?.data?.message || 'Failed'); }
     finally { setConfirming(null); }
@@ -42,13 +42,13 @@ export default function PendingPayments() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Pending Payments</h1>
-        <p className="text-neutral-500 text-sm mt-1">Complete your campaign payments</p>
+        <p className="text-muted-foreground text-sm mt-1">Complete your campaign payments</p>
       </div>
 
       {escrows.length === 0 ? (
         <div className="bg-white border rounded-lg p-12 text-center">
-          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <p className="text-neutral-500">No pending payments</p>
+          <CheckCircle className="w-12 h-12 text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">No pending payments</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -57,44 +57,44 @@ export default function PendingPayments() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="font-semibold text-lg">{escrow.campaign?.title}</h2>
-                  <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${escrow.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${escrow.status === 'PENDING' ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
                     {escrow.status === 'PENDING' ? 'Payment Pending' : 'Under Verification'}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-blue-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-blue-700">₹{escrow.amount?.toLocaleString()}</p>
-                  <p className="text-sm text-blue-600">Security Deposit (25%)</p>
+                <div className="p-4 bg-primary/10 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-primary">₹{escrow.amount?.toLocaleString()}</p>
+                  <p className="text-sm text-primary">Security Deposit (25%)</p>
                 </div>
-                <div className="p-4 bg-neutral-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-neutral-700">₹{escrow.totalPrizePool?.toLocaleString()}</p>
-                  <p className="text-sm text-neutral-600">Total Prize Pool</p>
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <p className="text-2xl font-bold text-foreground">₹{escrow.totalPrizePool?.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Prize Pool</p>
                 </div>
               </div>
 
               {bankDetails && (
                 <div className="mb-6 space-y-2">
                   <h3 className="font-semibold mb-3">Bank Details</h3>
-                  <div className="flex justify-between p-2 bg-neutral-50 rounded text-sm">
+                  <div className="flex justify-between p-2 bg-muted rounded text-sm">
                     <span>Bank</span><span className="font-medium">{bankDetails.bankName}</span>
                   </div>
-                  <div className="flex justify-between p-2 bg-neutral-50 rounded text-sm">
+                  <div className="flex justify-between p-2 bg-muted rounded text-sm">
                     <span>Account</span>
                     <div className="flex items-center gap-2">
                       <span className="font-mono">{bankDetails.accountNumber}</span>
-                      <button onClick={() => copy(bankDetails.accountNumber)} className="p-1 hover:bg-neutral-200 rounded"><Copy className="w-3 h-3" /></button>
+                      <button onClick={() => copy(bankDetails.accountNumber)} className="p-1 hover:bg-muted/80 rounded"><Copy className="w-3 h-3" /></button>
                     </div>
                   </div>
-                  <div className="flex justify-between p-2 bg-neutral-50 rounded text-sm">
+                  <div className="flex justify-between p-2 bg-muted rounded text-sm">
                     <span>IFSC</span><span className="font-mono">{bankDetails.ifsc}</span>
                   </div>
-                  <div className="flex justify-between p-2 bg-blue-50 border border-blue-200 rounded text-sm">
-                    <span className="text-blue-700">Reference</span>
+                  <div className="flex justify-between p-2 bg-primary/10 border border-primary/20 rounded text-sm">
+                    <span className="text-primary">Reference</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-blue-700">ESC-{escrow.id.slice(-8).toUpperCase()}</span>
-                      <button onClick={() => copy(`ESC-${escrow.id.slice(-8).toUpperCase()}`)} className="p-1 hover:bg-blue-100 rounded"><Copy className="w-3 h-3 text-blue-600" /></button>
+                      <span className="font-mono font-bold text-primary">ESC-{escrow.id.slice(-8).toUpperCase()}</span>
+                      <button onClick={() => copy(`ESC-${escrow.id.slice(-8).toUpperCase()}`)} className="p-1 hover:bg-primary/20 rounded"><Copy className="w-3 h-3 text-primary" /></button>
                     </div>
                   </div>
                 </div>
@@ -102,15 +102,15 @@ export default function PendingPayments() {
 
               {escrow.status === 'PENDING' && (
                 <button onClick={() => handleConfirm(escrow.campaignId)} disabled={confirming === escrow.campaignId}
-                  className="w-full py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
                   {confirming === escrow.campaignId ? <><Loader2 className="w-4 h-4 animate-spin" />Confirming...</> : "I've Made the Payment"}
                 </button>
               )}
 
               {escrow.status === 'PAYMENT_PENDING' && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded flex items-start gap-2">
-                  <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded flex items-start gap-2">
+                  <Clock className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="text-sm text-foreground">
                     <p className="font-medium">Under Verification</p>
                     <p>Payment verification takes up to 24 hours.</p>
                   </div>

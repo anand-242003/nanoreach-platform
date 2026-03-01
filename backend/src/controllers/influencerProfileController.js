@@ -5,15 +5,11 @@ export const createOrUpdateProfile = async (req, res) => {
     const { displayName, bio, youtubeChannelUrl, categoryTags } = req.body;
     const userId = req.user.id;
 
-    console.log('User attempting profile creation:', { userId, role: req.user.role });
-
     const user = await prisma.user.findUnique({ where: { id: userId } });
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    console.log('User found in DB:', { id: user.id, role: user.role });
 
     if (user.role !== 'INFLUENCER') {
       return res.status(403).json({ 

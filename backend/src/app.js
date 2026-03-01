@@ -13,6 +13,7 @@ import escrowRoutes from './routes/escrowRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
 import { authenticate } from './middlewares/authMiddleware.js';
 
 dotenv.config();
@@ -104,6 +105,7 @@ app.use('/api/escrow', sensitiveOpLimiter, escrowRoutes);
 app.use('/api/admin', sensitiveOpLimiter, adminRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/referral', referralRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ 

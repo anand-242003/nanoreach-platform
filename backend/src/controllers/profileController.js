@@ -10,11 +10,6 @@ export const createInfluencerProfile = async (req, res) => {
       return res.status(403).json({ message: 'Only influencers can create influencer profiles' });
     }
 
-    const existingProfile = await prisma.influencerProfile.findUnique({ where: { userId } });
-    if (existingProfile) {
-      return res.status(400).json({ message: 'Profile already exists' });
-    }
-
     let tags = categoryTags;
     if (typeof categoryTags === 'string') {
       try {
@@ -24,16 +19,18 @@ export const createInfluencerProfile = async (req, res) => {
       }
     }
 
-    const profile = await prisma.influencerProfile.create({
-      data: {
-        userId,
-        displayName,
-        bio,
-        youtubeChannelUrl,
-        categoryTags: Array.isArray(tags) ? tags : [tags],
-        identityDocument: req.file ? req.file.path : null,
-        pastWorkLinks: [],
-      }
+    const profileData = {
+      displayName,
+      bio,
+      youtubeChannelUrl,
+      categoryTags: Array.isArray(tags) ? tags : [tags],
+      ...(req.file && { identityDocument: req.file.path }),
+    };
+
+    const profile = await prisma.influencerProfile.upsert({
+      where: { userId },
+      create: { userId, pastWorkLinks: [], ...profileData },
+      update: profileData,
     });
 
     await prisma.user.update({
@@ -61,37 +58,35 @@ export const createBrandProfile = async (req, res) => {
       return res.status(403).json({ message: 'Only brands can create brand profiles' });
     }
 
-    const existingProfile = await prisma.brandProfile.findUnique({ where: { userId } });
-    if (existingProfile) {
-      return res.status(400).json({ message: 'Profile already exists' });
-    }
-
-    if (!companyName || !website || !industry || !panNumber) {
+    if (!companyName || !website || !industry) {
       return res.status(400).json({ 
-        message: 'Company name, website, industry, and PAN number are required',
+        message: 'Company name, website, and industry are required',
         missingFields: {
           companyName: !companyName,
           website: !website,
           industry: !industry,
-          panNumber: !panNumber,
         }
       });
     }
 
-    if (!req.file) {
+    const existingBrandProfile = await prisma.brandProfile.findUnique({ where: { userId } });
+    if (!req.file && !existingBrandProfile?.businessDocument) {
       return res.status(400).json({ message: 'Business document is required for verification' });
     }
 
-    const profile = await prisma.brandProfile.create({
-      data: {
-        userId,
-        companyName,
-        website,
-        industry,
-        gstNumber: gstNumber || null,
-        panNumber,
-        businessDocument: req.file.path,
-      }
+    const brandData = {
+      companyName,
+      website,
+      industry,
+      gstNumber: gstNumber || null,
+      panNumber: panNumber || null,
+      ...(req.file && { businessDocument: req.file.path }),
+    };
+
+    const profile = await prisma.brandProfile.upsert({
+      where: { userId },
+      create: { userId, ...brandData },
+      update: brandData,
     });
 
     await prisma.user.update({

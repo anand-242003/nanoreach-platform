@@ -63,7 +63,6 @@ export default function SubmitWorkModal({ campaignId, trigger, onSuccess }) {
   }, [open, campaignId]);
 
   useEffect(() => {
-    // Update content type when platform changes
     const availableTypes = CONTENT_TYPES[socialPlatform];
     if (availableTypes && !availableTypes.find(t => t.value === contentType)) {
       setContentType(availableTypes[0].value);

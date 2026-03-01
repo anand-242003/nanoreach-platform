@@ -9,7 +9,9 @@ import {
   verifyEmail,
   resendVerificationEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  updateUserProfile,
+  changePassword,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -26,5 +28,7 @@ router.post("/reset-password", resetPassword);
 
 router.get("/me", protect, getMe);
 router.get("/verification-status", protect, getVerificationStatus);
+router.put("/update-profile", protect, updateUserProfile);
+router.put("/change-password", protect, changePassword);
 
 export default router;

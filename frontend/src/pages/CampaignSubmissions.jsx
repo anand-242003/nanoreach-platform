@@ -16,7 +16,7 @@ export default function CampaignSubmissions() {
 
   const fetchSubmissions = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/submissions/campaign/${id}`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/submissions/campaign/${id}`, { withCredentials: true });
       setSubmissions(data.submissions || []);
     } catch (error) {
     } finally {
@@ -34,23 +34,23 @@ export default function CampaignSubmissions() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground mb-6 text-sm">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
-      <h1 className="text-2xl font-bold text-neutral-900 mb-8">Campaign Submissions</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-8">Campaign Submissions</h1>
 
       {submissions.length === 0 ? (
-        <div className="bg-white border rounded-lg p-12 text-center">
-          <FileText className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-          <p className="text-neutral-500">No submissions yet</p>
+        <div className="bg-card border rounded-lg p-12 text-center">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No submissions yet</p>
         </div>
       ) : (
         <div className="space-y-4">
           {submissions.map((submission) => (
-            <div key={submission.id} className="bg-white border rounded-lg p-4">
+            <div key={submission.id} className="bg-card border rounded-lg p-4">
               <p className="font-medium">{submission.contentUrl}</p>
-              <p className="text-sm text-neutral-500">{submission.status}</p>
+              <p className="text-sm text-muted-foreground">{submission.status}</p>
             </div>
           ))}
         </div>

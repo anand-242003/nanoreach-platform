@@ -39,7 +39,7 @@ export default function CampaignDetails() {
 
   const fetchCampaign = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/campaigns/${id}`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/campaigns/${id}`, { withCredentials: true });
       setCampaign(data.campaign || data);
     } catch (error) {
       setError('Campaign not found');
@@ -50,21 +50,21 @@ export default function CampaignDetails() {
 
   const checkExistingApplication = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/applications/my?campaignId=${id}`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/applications/my?campaignId=${id}`, { withCredentials: true });
       if (data.application) setApplication(data.application);
     } catch (error) {}
   };
 
   const checkSubmissionWindow = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/submissions/campaign/${id}/window`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/submissions/campaign/${id}/window`, { withCredentials: true });
       setSubmissionWindow(data);
     } catch (error) {}
   };
 
   const fetchLeaderboard = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/submissions/campaign/${id}/leaderboard`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/submissions/campaign/${id}/leaderboard`, { withCredentials: true });
       setLeaderboard(data.leaderboard || []);
     } catch (error) {}
   };
@@ -77,7 +77,7 @@ export default function CampaignDetails() {
     setApplying(true);
     setError('');
     try {
-      const { data } = await axios.post(`${API_URL}/applications`, {
+      const { data } = await axios.post(`${API_URL}/api/applications`, {
         campaignId: id,
         pitch: pitch.trim(),
       }, { withCredentials: true });
@@ -99,7 +99,7 @@ export default function CampaignDetails() {
     setSubmitting(true);
     setError('');
     try {
-      await axios.post(`${API_URL}/submissions`, {
+      await axios.post(`${API_URL}/api/submissions`, {
         campaignId: id,
         contentUrl: contentUrl.trim(),
       }, { withCredentials: true });
@@ -128,26 +128,26 @@ export default function CampaignDetails() {
   if (error && !campaign) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground mb-6 text-sm">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <p className="text-neutral-500 text-center py-12">{error}</p>
+        <p className="text-muted-foreground text-center py-12">{error}</p>
       </div>
     );
   }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-neutral-600 mb-6 text-sm hover:text-neutral-900">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-muted-foreground mb-6 text-sm hover:text-foreground">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
       <div className="bg-white rounded-lg border">
         <div className="p-6 border-b">
-          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
+          <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded">
             {campaign.status}
           </span>
-          <h1 className="text-2xl font-bold text-neutral-900 mt-2">{campaign.title}</h1>
+          <h1 className="text-2xl font-bold text-foreground mt-2">{campaign.title}</h1>
         </div>
 
         <div className="flex border-b">
@@ -156,7 +156,7 @@ export default function CampaignDetails() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-6 py-3 text-sm font-medium capitalize ${
-                activeTab === tab ? 'border-b-2 border-neutral-900' : 'text-neutral-500'
+                activeTab === tab ? 'border-b-2 border-primary' : 'text-muted-foreground'
               }`}
             >
               {tab}
@@ -167,38 +167,38 @@ export default function CampaignDetails() {
         {activeTab === 'details' && (
           <div className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-4 bg-neutral-50 rounded-lg">
-                <DollarSign className="w-5 h-5 text-neutral-400 mx-auto mb-2" />
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <DollarSign className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
                 <p className="text-lg font-bold">₹{campaign.budget?.toLocaleString()}</p>
-                <p className="text-xs text-neutral-500">Prize Pool</p>
+                <p className="text-xs text-muted-foreground">Prize Pool</p>
               </div>
-              <div className="text-center p-4 bg-neutral-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-neutral-400 mx-auto mb-2" />
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <Calendar className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
                 <p className="text-lg font-bold">{new Date(campaign.endDate).toLocaleDateString()}</p>
-                <p className="text-xs text-neutral-500">Deadline</p>
+                <p className="text-xs text-muted-foreground">Deadline</p>
               </div>
-              <div className="text-center p-4 bg-neutral-50 rounded-lg">
-                <Users className="w-5 h-5 text-neutral-400 mx-auto mb-2" />
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <Users className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
                 <p className="text-lg font-bold">{campaign._count?.applications || 0}</p>
-                <p className="text-xs text-neutral-500">Applications</p>
+                <p className="text-xs text-muted-foreground">Applications</p>
               </div>
-              <div className="text-center p-4 bg-neutral-50 rounded-lg">
-                <Target className="w-5 h-5 text-neutral-400 mx-auto mb-2" />
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <Target className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
                 <p className="text-lg font-bold">{campaign._count?.submissions || 0}</p>
-                <p className="text-xs text-neutral-500">Submissions</p>
+                <p className="text-xs text-muted-foreground">Submissions</p>
               </div>
             </div>
 
             <div className="space-y-6">
               <div>
                 <h2 className="font-semibold mb-2">Description</h2>
-                <p className="text-neutral-600 text-sm whitespace-pre-line">{campaign.description}</p>
+                <p className="text-muted-foreground text-sm whitespace-pre-line">{campaign.description}</p>
               </div>
               
               {campaign.contentRequirements && (
                 <div>
                   <h2 className="font-semibold mb-2">Requirements</h2>
-                  <p className="text-neutral-600 text-sm whitespace-pre-line">{campaign.contentRequirements}</p>
+                  <p className="text-muted-foreground text-sm whitespace-pre-line">{campaign.contentRequirements}</p>
                 </div>
               )}
 
@@ -207,7 +207,7 @@ export default function CampaignDetails() {
                   <h2 className="font-semibold mb-2">Prizes</h2>
                   <div className="space-y-2">
                     {campaign.prizeDistribution.map((prize, i) => (
-                      <div key={i} className="flex justify-between p-3 bg-neutral-50 rounded">
+                      <div key={i} className="flex justify-between p-3 bg-muted rounded">
                         <span>Rank {prize.rank}</span>
                         <span className="font-semibold">₹{prize.amount?.toLocaleString()}</span>
                       </div>
@@ -223,27 +223,27 @@ export default function CampaignDetails() {
           <div className="p-6">
             {leaderboard.length === 0 ? (
               <div className="text-center py-12">
-                <Trophy className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-                <p className="text-neutral-500">No submissions yet</p>
+                <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No submissions yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {leaderboard.map((entry, i) => (
                   <div key={entry.id} className="flex items-center gap-4 p-4 border rounded-lg">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                      i === 0 ? 'bg-yellow-100 text-yellow-700' :
-                      i === 1 ? 'bg-neutral-200 text-neutral-700' :
+                      i === 0 ? 'bg-primary/10 text-primary' :
+                      i === 1 ? 'bg-muted text-muted-foreground' :
                       i === 2 ? 'bg-orange-100 text-orange-700' :
-                      'bg-neutral-100 text-neutral-600'
+                      'bg-muted text-muted-foreground'
                     }`}>
                       {entry.rank || i + 1}
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">{entry.influencer?.displayName || 'Anonymous'}</p>
-                      <p className="text-sm text-neutral-500">Score: {entry.totalScore?.toFixed(1)}</p>
+                      <p className="text-sm text-muted-foreground">Score: {entry.totalScore?.toFixed(1)}</p>
                     </div>
                     {entry.prizeAmount && (
-                      <span className="font-bold text-green-600">₹{entry.prizeAmount.toLocaleString()}</span>
+                      <span className="font-bold text-primary">₹{entry.prizeAmount.toLocaleString()}</span>
                     )}
                   </div>
                 ))}
@@ -253,9 +253,9 @@ export default function CampaignDetails() {
         )}
 
         {isInfluencer && (
-          <div className="p-6 border-t bg-neutral-50">
+          <div className="p-6 border-t bg-muted">
             {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>}
-            {success && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">{success}</div>}
+            {success && <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">{success}</div>}
 
             {!application ? (
               <div>
@@ -268,24 +268,24 @@ export default function CampaignDetails() {
                   className="w-full border rounded-lg px-3 py-2 text-sm mb-3"
                 />
                 <button onClick={handleApply} disabled={applying}
-                  className="w-full py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50">
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50">
                   {applying ? 'Submitting...' : 'Submit Application'}
                 </button>
               </div>
             ) : (
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  {application.status === 'PENDING' && <Clock className="w-5 h-5 text-yellow-500" />}
-                  {application.status === 'APPROVED' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                  {application.status === 'PENDING' && <Clock className="w-5 h-5 text-muted-foreground" />}
+                  {application.status === 'APPROVED' && <CheckCircle className="w-5 h-5 text-primary" />}
                   <span className="font-medium">Application {application.status}</span>
                 </div>
 
                 {application.status === 'APPROVED' && application.referralLink && (
                   <div className="mb-4 p-3 bg-white border rounded-lg">
-                    <p className="text-xs text-neutral-500 mb-1">Your Referral Link:</p>
+                    <p className="text-xs text-muted-foreground mb-1">Your Referral Link:</p>
                     <div className="flex items-center gap-2">
                       <code className="text-sm flex-1 truncate">{application.referralLink.url}</code>
-                      <button onClick={() => copyToClipboard(application.referralLink.url)} className="p-2 hover:bg-neutral-100 rounded">
+                      <button onClick={() => copyToClipboard(application.referralLink.url)} className="p-2 hover:bg-muted rounded">
                         <Copy className="w-4 h-4" />
                       </button>
                     </div>
@@ -303,21 +303,21 @@ export default function CampaignDetails() {
                       className="w-full border rounded-lg px-3 py-2 text-sm mb-3"
                     />
                     <button onClick={handleSubmitContent} disabled={submitting}
-                      className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+                      className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50">
                       {submitting ? 'Submitting...' : 'Submit Content'}
                     </button>
                   </div>
                 )}
 
                 {submissionWindow?.hasSubmitted && (
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                    <CheckCircle className="w-5 h-5 text-green-600 inline mr-2" />
+                  <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded">
+                    <CheckCircle className="w-5 h-5 text-primary inline mr-2" />
                     Content submitted! Check the leaderboard for your ranking.
                   </div>
                 )}
 
                 {submissionWindow?.window?.status === 'NOT_STARTED' && (
-                  <p className="text-sm text-neutral-500 mt-4">
+                  <p className="text-sm text-muted-foreground mt-4">
                     Submission window opens on {new Date(submissionWindow.window.opensAt).toLocaleString()}
                   </p>
                 )}

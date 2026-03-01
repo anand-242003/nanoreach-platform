@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { Loader2, DollarSign, Clock, Filter, Plus, Search, Target } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function MyCampaigns() {
   const navigate = useNavigate();
+  const { verificationStatus } = useSelector((state) => state.auth);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
@@ -19,7 +21,7 @@ export default function MyCampaigns() {
     try {
       setLoading(true);
       const params = filter ? `?status=${filter}` : '';
-      const { data } = await axios.get(`${API_URL}/campaigns/my${params}`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/campaigns/my${params}`, { withCredentials: true });
       setCampaigns(data.campaigns || []);
     } catch (error) {
     } finally {
@@ -32,19 +34,31 @@ export default function MyCampaigns() {
     c.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (verificationStatus === 'UNDER_REVIEW') {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-muted rounded-xl p-10 text-center border border-border">
+          <Clock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Profile Under Review</h2>
+          <p className="text-muted-foreground">Your brand profile is being reviewed. Campaigns will be available here once your account is approved.</p>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusColor = (status) => {
     const colors = {
-      ACTIVE: 'bg-green-100 text-green-700',
-      DRAFT: 'bg-yellow-100 text-yellow-700',
-      COMPLETED: 'bg-neutral-100 text-neutral-600',
+      ACTIVE: 'bg-primary/10 text-primary',
+      DRAFT: 'bg-muted text-muted-foreground',
+      COMPLETED: 'bg-muted text-muted-foreground',
     };
-    return colors[status] || 'bg-neutral-100 text-neutral-600';
+    return colors[status] || 'bg-muted text-muted-foreground';
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -53,12 +67,12 @@ export default function MyCampaigns() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">My Campaigns</h1>
-          <p className="text-neutral-500 text-sm mt-1">Manage your brand campaigns</p>
+          <h1 className="text-2xl font-bold text-foreground">My Campaigns</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage your brand campaigns</p>
         </div>
         <button 
           onClick={() => navigate('/campaigns/create')}
-          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm"
         >
           <Plus className="w-4 h-4" />
           New Campaign
@@ -67,29 +81,29 @@ export default function MyCampaigns() {
       
       <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search campaigns..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>
       
       <div className="bg-white border rounded-lg p-4 mb-6">
         <div className="flex items-center gap-4 flex-wrap">
-          <Filter className="w-4 h-4 text-neutral-400" />
-          <span className="text-sm text-neutral-600">Status:</span>
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Status:</span>
           {['ALL', 'ACTIVE', 'DRAFT', 'COMPLETED'].map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status === 'ALL' ? '' : status)}
               className={`px-3 py-1 rounded text-sm ${
                 (status === 'ALL' && !filter) || filter === status
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
               {status}
@@ -100,11 +114,11 @@ export default function MyCampaigns() {
       
       {filteredCampaigns.length === 0 ? (
         <div className="bg-white border rounded-lg p-12 text-center">
-          <Target className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-          <p className="text-neutral-500 mb-4">No campaigns found</p>
+          <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground mb-4">No campaigns found</p>
           <button 
             onClick={() => navigate('/campaigns/create')}
-            className="text-sm text-neutral-900 font-medium hover:underline"
+            className="text-sm text-primary font-medium hover:underline"
           >
             Create your first campaign
           </button>
@@ -115,16 +129,16 @@ export default function MyCampaigns() {
             <div
               key={campaign.id}
               onClick={() => navigate(`/campaigns/${campaign.id}`)}
-              className="bg-white border rounded-lg p-5 hover:border-neutral-400 cursor-pointer"
+              className="bg-card border rounded-lg p-5 hover:border-foreground/30 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-neutral-900 line-clamp-1">{campaign.title}</h3>
+                <h3 className="font-semibold text-foreground line-clamp-1">{campaign.title}</h3>
                 <span className={`px-2 py-1 text-xs rounded ${getStatusColor(campaign.status)}`}>
                   {campaign.status}
                 </span>
               </div>
-              <p className="text-sm text-neutral-500 mb-4 line-clamp-2">{campaign.description}</p>
-              <div className="flex items-center gap-4 text-sm text-neutral-600">
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{campaign.description}</p>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <DollarSign className="w-4 h-4" />
                   ₹{campaign.budget?.toLocaleString()}

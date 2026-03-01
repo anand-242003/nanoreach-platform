@@ -309,7 +309,6 @@ export const getPendingApplications = async (req, res) => {
               youtubeChannelUrl: true,
               subscriberCount: true,
               categoryTags: true,
-              score: true,
             },
           },
         },

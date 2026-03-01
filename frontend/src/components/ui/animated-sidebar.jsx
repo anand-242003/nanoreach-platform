@@ -84,11 +84,12 @@ export function NanoReachSidebar() {
   const location   = useLocation();
   const navigate   = useNavigate();
   const dispatch   = useDispatch();
-  const { user }   = useSelector((state) => state.auth);
+  const { user, verificationStatus } = useSelector((state) => state.auth);
 
   const role       = user?.role ?? "INFLUENCER";
   const isAdmin    = role === "ADMIN";
   const isBrand    = role === "BRAND";
+  const isLocked   = !isAdmin && verificationStatus === 'UNDER_REVIEW';
   const navLinks   = isAdmin ? adminNav : isBrand ? brandNav : influencerNav;
   const roleBadge  = isAdmin ? "Admin" : isBrand ? "Brand" : "Influencer";
   const initials   = user?.name
@@ -164,6 +165,23 @@ export function NanoReachSidebar() {
               <div className="flex flex-col gap-0.5">
                 {navLinks.map((link, idx) => {
                   const active = isActive(link.to);
+                  const disabled = isLocked && link.to !== '/dashboard';
+                  if (disabled) {
+                    return (
+                      <span
+                        key={link.to}
+                        title="Available after verification approval"
+                        className="flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 cursor-not-allowed opacity-35 select-none"
+                      >
+                        <link.icon className="h-4 w-4 shrink-0" />
+                        <motion.li variants={labelVariants} className="overflow-hidden">
+                          {!isCollapsed && (
+                            <p className="ml-2 whitespace-nowrap text-sm font-medium">{link.label}</p>
+                          )}
+                        </motion.li>
+                      </span>
+                    );
+                  }
                   return (
                     <Link
                       key={link.to}

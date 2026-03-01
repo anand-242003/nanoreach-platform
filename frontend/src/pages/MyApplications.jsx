@@ -9,9 +9,9 @@ import ReferralLinkCard from '@/components/campaigns/ReferralLinkCard';
 import { FileText, ExternalLink, Clock, CheckCircle, XCircle, AlertCircle, BarChart3 } from 'lucide-react';
 
 const statusConfig = {
-  PENDING: { label: 'Pending Review', color: 'bg-yellow-500', icon: Clock },
-  APPROVED: { label: 'Approved', color: 'bg-green-500', icon: CheckCircle },
-  REJECTED: { label: 'Rejected', color: 'bg-red-500', icon: XCircle },
+  PENDING: { label: 'Pending Review', color: 'bg-muted-foreground', icon: Clock },
+  APPROVED: { label: 'Approved', color: 'bg-primary', icon: CheckCircle },
+  REJECTED: { label: 'Rejected', color: 'bg-destructive', icon: XCircle },
 };
 
 export default function MyApplications() {

@@ -10,7 +10,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background flex">
       <NanoReachSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 ml-[3.05rem]">
         {verificationStatus && verificationStatus !== 'VERIFIED' && !isAdmin && <VerificationBanner />}
         <main className="flex-1 overflow-auto">
           <Outlet />
