@@ -25,8 +25,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(helmet());
+// Support comma-separated origins e.g. for Vercel preview + production URLs
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map(u => u.trim());
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
@@ -59,7 +68,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Error" });
 });
 
-const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL', 'PORT'];
+const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
