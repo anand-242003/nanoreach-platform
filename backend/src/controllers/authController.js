@@ -21,6 +21,17 @@ const validatePassword = (password) => {
   return errors;
 };
 
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
 export const signup = async (req, res) => {
     try {
         let { name, email, password, role } = req.body;
@@ -90,12 +101,7 @@ export const signup = async (req, res) => {
         
         const token = generateToken(user.id, user.role);
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict", 
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("token", token, getCookieOptions());
         return res.status(201).json({
             message: "User registered successfully. Please check your email to verify your account.",
             user: {
@@ -211,12 +217,7 @@ export const login = async (req, res) => {
 
         const token = generateToken(user.id, user.role);
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("token", token, getCookieOptions());
 
         const hasProfile = user.role === 'INFLUENCER' 
             ? user.influencerProfile !== null 
@@ -243,10 +244,10 @@ export const login = async (req, res) => {
 };
 
 export const logout = (_req, res) => {
+  const { maxAge, ...cookieOptions } = getCookieOptions();
+
   res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    ...cookieOptions,
   });
 
   return res.json({ message: "Logout successful" });
