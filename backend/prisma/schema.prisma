@@ -72,7 +72,7 @@ model User {
   influencerProfile  InfluencerProfile?
   brandProfile       BrandProfile?
   applications       Application[]
-  adminActions       AdminAction[]
+  // adminActions removed: AdminAction.performedBy no longer enforces ObjectId relation
 }
 
 model InfluencerProfile {
@@ -327,8 +327,7 @@ model BrandReport {
 
 model AdminAction {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  performedBy   String   @db.ObjectId
-  admin         User     @relation(fields: [performedBy], references: [id])
+  performedBy   String
   actionType    String
   targetType    String
   targetId      String

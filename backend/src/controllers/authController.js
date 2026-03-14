@@ -140,7 +140,7 @@ export const login = async (req, res) => {
                 notes: { contains: email },
                 createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
             },
-        });
+        }).catch(() => 0);
         
         if (recentFailures >= 5) {
             await logAuditEvent({
