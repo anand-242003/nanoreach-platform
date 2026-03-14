@@ -40,7 +40,7 @@ async function checkDatabase() {
 
 function checkEnvironmentVariables() {
   const required = ['DATABASE_URL', 'JWT_SECRET', 'FRONTEND_URL'];
-  const productionOnly = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASSWORD'];
+  const productionOnly = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'];
   
   required.forEach(envVar => {
     if (process.env[envVar]) {
