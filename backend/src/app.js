@@ -32,14 +32,16 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
+// FRONTEND_URL supports comma-separated values for multiple Vercel/preview URLs
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:5174'
+  ...(process.env.FRONTEND_URL || 'http://localhost:5173')
+    .split(',')
+    .map(u => u.trim()),
+  'http://localhost:5174',
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
