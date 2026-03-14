@@ -33,6 +33,7 @@ async function main() {
       name: 'Admin User',
       role: 'ADMIN',
       verificationStatus: 'VERIFIED',
+      emailVerified: true,
     },
   });
   console.log(`   Admin: ${admin.email}`);
@@ -47,6 +48,7 @@ async function main() {
       name: 'Nike Marketing',
       role: 'BRAND',
       verificationStatus: 'VERIFIED',
+      emailVerified: true,
       brandProfile: {
         create: {
           companyName: 'Nike India',
@@ -72,6 +74,7 @@ async function main() {
       name: 'Samsung India',
       role: 'BRAND',
       verificationStatus: 'VERIFIED',
+      emailVerified: true,
       brandProfile: {
         create: {
           companyName: 'Samsung Electronics India',
@@ -133,6 +136,7 @@ async function main() {
       name: 'Tech Guru',
       role: 'INFLUENCER',
       verificationStatus: 'VERIFIED',
+      emailVerified: true,
       influencerProfile: {
         create: {
           displayName: 'TechGuru Reviews',
@@ -163,6 +167,7 @@ async function main() {
       name: 'Fitness First',
       role: 'INFLUENCER',
       verificationStatus: 'VERIFIED',
+      emailVerified: true,
       influencerProfile: {
         create: {
           displayName: 'Fitness First with Priya',
