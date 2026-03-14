@@ -42,7 +42,7 @@ const allowedOrigins = [
 
 // Matches any Vercel preview deployment for this project:
 // e.g. https://nanoreach-abc123-anands-projects-0e94119a.vercel.app
-const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
+const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9-]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
