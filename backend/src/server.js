@@ -30,10 +30,13 @@ const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
   .map(u => u.trim());
 
+// Matches any Vercel preview deployment for this project
+const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,

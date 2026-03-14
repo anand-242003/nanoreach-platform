@@ -40,10 +40,14 @@ const allowedOrigins = [
   'http://localhost:5174',
 ];
 
+// Matches any Vercel preview deployment for this project:
+// e.g. https://nanoreach-abc123-anands-projects-0e94119a.vercel.app
+const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
+
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
