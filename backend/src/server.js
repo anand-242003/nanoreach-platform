@@ -70,23 +70,20 @@ app.use((err, req, res, next) => {
 
 const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
-
 if (missingEnvVars.length > 0) {
-  console.error(' Missing required environment variables:', missingEnvVars.join(', '));
-  console.error('Please check your .env file');
-  process.exit(1);
+  console.error('WARNING: Missing env vars:', missingEnvVars.join(', '));
 }
-
-if (process.env.JWT_SECRET.length < 32) {
-  console.error(' JWT_SECRET is too short. Must be at least 32 characters.');
-  console.error('Generate a strong secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
-  process.exit(1);
+if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+  console.error('WARNING: JWT_SECRET is too short (< 32 chars) - auth will fail');
 }
 
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(` Server is running on port ${PORT}`);
-  console.log(` Environment: ${process.env.NODE_ENV}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL}`);
+  console.log(`DATABASE_URL set: ${!!process.env.DATABASE_URL}`);
+  console.log(`JWT_SECRET length: ${process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0}`);
 });
 

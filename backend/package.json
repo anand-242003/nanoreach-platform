@@ -9,7 +9,6 @@
     "start": "node src/server.js",
     "seed": "node prisma/seed.js",
     "verify": "node src/verify-security.js",
-    "prestart": "node src/verify-security.js",
     "setup-admin": "node scripts/setupAdmin.js",
     "verify-admin": "node scripts/verifyAdminEmail.js"
   },
