@@ -25,12 +25,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(helmet());
-// Support comma-separated origins e.g. for Vercel preview + production URLs
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
   .map(u => u.trim());
-
-// Matches any Vercel preview deployment for this project
 const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9-]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
 
 app.use(cors({
@@ -66,27 +63,15 @@ app.use("/api/referral", referralRoutes);
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ message: "Error" });
+app.use((err, req, res, next) => {res.status(500).json({ message: "Error" });
 });
 
 const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
-if (missingEnvVars.length > 0) {
-  console.error('WARNING: Missing env vars:', missingEnvVars.join(', '));
-}
-if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-  console.error('WARNING: JWT_SECRET is too short (< 32 chars) - auth will fail');
-}
+if (missingEnvVars.length > 0) {}
+if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {}
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL}`);
-  console.log(`DATABASE_URL set: ${!!process.env.DATABASE_URL}`);
-  console.log(`JWT_SECRET length: ${process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0}`);
-});
+app.listen(PORT, () => {});
 

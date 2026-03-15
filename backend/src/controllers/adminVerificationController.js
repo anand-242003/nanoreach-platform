@@ -36,9 +36,7 @@ export const getPendingInfluencers = async (req, res) => {
         pages: Math.ceil(total / limit),
       }
     });
-  } catch (error) {
-    console.error('Get Pending Influencers Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -78,9 +76,7 @@ export const getPendingBrands = async (req, res) => {
         pages: Math.ceil(total / limit),
       }
     });
-  } catch (error) {
-    console.error('Get Pending Brands Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -100,9 +96,7 @@ export const getInfluencerDetails = async (req, res) => {
     }
 
     res.json({ influencer: user });
-  } catch (error) {
-    console.error('Get Influencer Details Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -122,9 +116,7 @@ export const getBrandDetails = async (req, res) => {
     }
 
     res.json({ brand: user });
-  } catch (error) {
-    console.error('Get Brand Details Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -167,9 +159,7 @@ export const approveInfluencer = async (req, res) => {
     });
 
     res.json({ message: 'Influencer approved successfully' });
-  } catch (error) {
-    console.error('Approve Influencer Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -215,9 +205,7 @@ export const rejectInfluencer = async (req, res) => {
     });
 
     res.json({ message: 'Influencer rejected' });
-  } catch (error) {
-    console.error('Reject Influencer Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -260,9 +248,7 @@ export const approveBrand = async (req, res) => {
     });
 
     res.json({ message: 'Brand approved successfully' });
-  } catch (error) {
-    console.error('Approve Brand Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -308,8 +294,6 @@ export const rejectBrand = async (req, res) => {
     });
 
     res.json({ message: 'Brand rejected' });
-  } catch (error) {
-    console.error('Reject Brand Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };

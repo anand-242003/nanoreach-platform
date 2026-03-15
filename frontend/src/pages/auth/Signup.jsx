@@ -13,23 +13,26 @@ import { Input } from "@/components/ui/input";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
+
 const formSchema = z.object({
-  name:            z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email:           z.string().email({ message: "Please enter a valid email." }),
-  password:        z.string().min(8, { message: "Password must be at least 8 characters." }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   confirmPassword: z.string(),
-  role:            z.enum(["INFLUENCER", "BRAND"]),
-}).refine((d) => d.password === d.confirmPassword, {
+  role: z.enum(["INFLUENCER", "BRAND"]),
+}).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match.",
   path: ["confirmPassword"],
 });
+
 const containerVariants = {
-  hidden:  { opacity: 0 },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
+
 const itemVariants = {
-  hidden:  { y: 20, opacity: 0 },
-  visible: { y: 0,  opacity: 1 },
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
 };
 
 const FEATURES = [
@@ -40,12 +43,12 @@ const FEATURES = [
 ];
 
 export default function Signup() {
-  const [showPassword,    setShowPassword]    = useState(false);
-  const [showConfirm,     setShowConfirm]     = useState(false);
-  const [isSubmitting,    setIsSubmitting]    = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const dispatch  = useDispatch();
-  const navigate  = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
@@ -69,10 +72,10 @@ export default function Signup() {
     setIsSubmitting(true);
     try {
       await dispatch(signup({
-        name:     data.name,
-        email:    data.email,
+        name: data.name,
+        email: data.email,
         password: data.password,
-        role:     data.role,
+        role: data.role,
       })).unwrap();
       toast({ title: "Welcome to NanoReach!", description: "Account created successfully." });
       navigate("/onboarding");
@@ -86,7 +89,6 @@ export default function Signup() {
   return (
     <div className="relative flex min-h-screen w-full flex-col md:flex-row">
       <div className="relative hidden md:flex md:w-2/5 flex-col bg-foreground overflow-hidden">
-
         <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
           <Link to="/">
             <div className="flex items-center gap-2">
@@ -138,6 +140,7 @@ export default function Signup() {
           <p className="text-xs text-white/30">© {new Date().getFullYear()} DRK/MTTR</p>
         </div>
       </div>
+
       <div className="flex flex-1 flex-col items-center justify-center bg-background p-8">
         <div className="w-full max-w-md">
           <motion.div
@@ -169,7 +172,7 @@ export default function Signup() {
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { value: "INFLUENCER", icon: Sparkles, label: "Creator / Influencer", sub: "Earn from campaigns" },
-                      { value: "BRAND",      icon: Building2, label: "Brand",               sub: "Run campaigns"      },
+                      { value: "BRAND", icon: Building2, label: "Brand", sub: "Run campaigns" },
                     ].map(({ value, icon: Icon, label, sub }) => (
                       <button
                         key={value}
@@ -243,7 +246,7 @@ export default function Signup() {
                             />
                             <button
                               type="button"
-                              onClick={() => setShowPassword((v) => !v)}
+                              onClick={() => setShowPassword((value) => !value)}
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                               tabIndex={-1}
                             >
@@ -275,7 +278,7 @@ export default function Signup() {
                             />
                             <button
                               type="button"
-                              onClick={() => setShowConfirm((v) => !v)}
+                              onClick={() => setShowConfirm((value) => !value)}
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                               tabIndex={-1}
                             >
@@ -292,15 +295,11 @@ export default function Signup() {
                 <motion.div variants={itemVariants}>
                   <p className="text-xs text-muted-foreground mb-3">
                     By creating an account you agree to our{" "}
-                    <Link to="/terms"   className="text-primary hover:underline">Terms</Link>
+                    <Link to="/terms" className="text-primary hover:underline">Terms</Link>
                     {" "}and{" "}
                     <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
                   </p>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={loading || isSubmitting}
-                  >
+                  <Button type="submit" className="w-full" disabled={loading || isSubmitting}>
                     {(loading || isSubmitting) ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account…</>
                     ) : (

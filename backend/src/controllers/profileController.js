@@ -42,9 +42,7 @@ export const createInfluencerProfile = async (req, res) => {
       message: 'Profile created successfully',
       profile
     });
-  } catch (error) {
-    console.error('Create Influencer Profile Error:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+  } catch (error) {res.status(500).json({ message: error.message || 'Server error' });
   }
 };
 
@@ -98,9 +96,7 @@ export const createBrandProfile = async (req, res) => {
       message: 'Profile created successfully and submitted for verification',
       profile
     });
-  } catch (error) {
-    console.error('Create Brand Profile Error:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+  } catch (error) {res.status(500).json({ message: error.message || 'Server error' });
   }
 };
 
@@ -130,9 +126,7 @@ export const getMyProfile = async (req, res) => {
       },
       profile
     });
-  } catch (error) {
-    console.error('Get Profile Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -167,9 +161,7 @@ export const updateInfluencerProfile = async (req, res) => {
     });
 
     res.json({ message: 'Profile updated', profile });
-  } catch (error) {
-    console.error('Update Influencer Profile Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -196,8 +188,6 @@ export const updateBrandProfile = async (req, res) => {
     });
 
     res.json({ message: 'Profile updated', profile });
-  } catch (error) {
-    console.error('Update Brand Profile Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };

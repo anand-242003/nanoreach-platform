@@ -39,9 +39,7 @@ export default function SubmissionReview() {
       setSelected(null);
       setScores({ engagementScore: 0, referralScore: 0, qualityScore: 0, feedback: '' });
       fetchData();
-    } catch (error) {
-      console.error('Score error:', error.response?.data?.message || error.message);
-    } finally {
+    } catch (error) {} finally {
       setSaving(false);
     }
   };
@@ -53,9 +51,7 @@ export default function SubmissionReview() {
     try {
       await axios.post(`${API_URL}/api/submissions/admin/campaign/${campaignId}/reveal`, { prizeAmounts }, { withCredentials: true });
       fetchData();
-    } catch (error) {
-      console.error('Reveal error:', error.response?.data?.message || error.message);
-    }
+    } catch (error) {}
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" /></div>;

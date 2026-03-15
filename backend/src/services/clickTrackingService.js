@@ -100,9 +100,7 @@ export const getGeoLocation = async (ipAddress) => {
       city: 'UNKNOWN',
       isLocal: false
     };
-  } catch (error) {
-    console.error('Geo lookup error:', error);
-    return {
+  } catch (error) {return {
       country: 'UNKNOWN',
       city: 'UNKNOWN',
       isLocal: false
@@ -228,9 +226,7 @@ export const trackClick = async ({
       flags,
       geoData
     };
-  } catch (error) {
-    console.error('Track click error:', error);
-    throw error;
+  } catch (error) {throw error;
   }
 };
 
@@ -294,9 +290,7 @@ export const getClickAnalytics = async (referralLinkId) => {
       })),
       devices
     };
-  } catch (error) {
-    console.error('Get click analytics error:', error);
-    throw error;
+  } catch (error) {throw error;
   }
 };
 
@@ -312,8 +306,6 @@ export const getSuspiciousClicks = async (referralLinkId) => {
     });
     
     return suspiciousClicks;
-  } catch (error) {
-    console.error('Get suspicious clicks error:', error);
-    throw error;
+  } catch (error) {throw error;
   }
 };

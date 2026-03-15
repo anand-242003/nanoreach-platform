@@ -92,9 +92,7 @@ export const createEscrow = async (req, res) => {
   } catch (error) {
     if (error.status) {
       return res.status(error.status).json({ message: error.message });
-    }
-    console.error("Create Escrow Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    }res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -121,9 +119,7 @@ export const getEscrowStatus = async (req, res) => {
     }
 
     res.json({ escrow });
-  } catch (error) {
-    console.error("Get Escrow Status Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -169,9 +165,7 @@ export const confirmPayment = async (req, res) => {
       message: "Payment confirmation submitted. Awaiting admin verification.",
       escrow,
     });
-  } catch (error) {
-    console.error("Confirm Payment Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -205,9 +199,7 @@ export const getPendingEscrows = async (req, res) => {
     });
 
     res.json({ escrows });
-  } catch (error) {
-    console.error("Get Pending Escrows Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -261,9 +253,7 @@ export const verifyAndFundEscrow = async (req, res) => {
       message: "Escrow funded and campaign activated",
       escrow: updated,
     });
-  } catch (error) {
-    console.error("Verify Escrow Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -299,9 +289,7 @@ export const rejectPayment = async (req, res) => {
       message: "Payment rejected",
       escrow: updated,
     });
-  } catch (error) {
-    console.error("Reject Payment Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -434,9 +422,7 @@ export const releaseEscrow = async (req, res) => {
   } catch (error) {
     if (error.status) {
       return res.status(error.status).json({ message: error.message });
-    }
-    console.error("Release Escrow Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    }res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -476,9 +462,7 @@ export const refundEscrow = async (req, res) => {
       message: "Escrow refunded",
       escrow: updated,
     });
-  } catch (error) {
-    console.error("Refund Escrow Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -494,8 +478,6 @@ export const getMyPendingEscrows = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
     res.json({ escrows });
-  } catch (error) {
-    console.error("Get My Pending Escrows Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

@@ -100,9 +100,7 @@ export const getInfluencerAnalytics = async (req, res) => {
       campaigns: campaignMetrics,
       clickTrends: trendData,
     });
-  } catch (error) {
-    console.error("Get Influencer Analytics Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -255,8 +253,6 @@ export const getBrandAnalytics = async (req, res) => {
       campaigns: campaignPerformance,
       conversionTrends: trendData,
     });
-  } catch (error) {
-    console.error("Get Brand Analytics Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

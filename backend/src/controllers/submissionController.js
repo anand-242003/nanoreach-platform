@@ -142,9 +142,7 @@ export const createSubmission = async (req, res) => {
             error: verified.error
           };
         }
-      } catch (verifyError) {
-        console.error('Auto-verification failed:', verifyError);
-        verificationResult = {
+      } catch (verifyError) {verificationResult = {
           verified: false,
           error: 'Verification service error'
         };
@@ -156,9 +154,7 @@ export const createSubmission = async (req, res) => {
       submission,
       verification: verificationResult
     });
-  } catch (error) {
-    console.error("Create Submission Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error) {res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -173,9 +169,7 @@ export const getMySubmissions = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
     res.json({ submissions });
-  } catch (error) {
-    console.error("Get My Submissions Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -197,9 +191,7 @@ export const getCampaignSubmissions = async (req, res) => {
     }));
 
     res.json({ submissions: result });
-  } catch (error) {
-    console.error("Get Campaign Submissions Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -231,9 +223,7 @@ export const scoreSubmission = async (req, res) => {
 
     await updateCampaignRankings(submission.campaignId);
     res.json({ message: "Submission scored", totalScore });
-  } catch (error) {
-    console.error("Score Submission Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -279,9 +269,7 @@ export const getCampaignLeaderboard = async (req, res) => {
     }));
 
     res.json({ leaderboard, campaign: { title: campaign.title, status: campaign.status, prizeDistribution: campaign.prizeDistribution } });
-  } catch (error) {
-    console.error("Get Leaderboard Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -315,9 +303,7 @@ export const getSubmissionWindowStatus = async (req, res) => {
       referralLink: application?.referralLink,
       window: { status, opensAt: endDate, closesAt: windowEnd },
     });
-  } catch (error) {
-    console.error("Get Submission Window Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -340,9 +326,7 @@ export const revealLeaderboard = async (req, res) => {
     await prisma.campaign.update({ where: { id: campaignId }, data: { status: 'COMPLETED' } });
 
     res.json({ message: "Leaderboard revealed" });
-  } catch (error) {
-    console.error("Reveal Leaderboard Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -364,9 +348,7 @@ export const getInfluencerFeedback = async (req, res) => {
       breakdown: submission.leaderboardEntry?.scoreBreakdown,
       prizeAmount: submission.leaderboardEntry?.prizeAmount,
     });
-  } catch (error) {
-    console.error("Get Feedback Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -434,9 +416,7 @@ export const updateSubmissionMetrics = async (req, res) => {
       message: "Metrics updated successfully",
       metrics: updatedMetrics
     });
-  } catch (error) {
-    console.error("Update Metrics Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -493,9 +473,7 @@ export const validateSubmission = async (req, res) => {
       message: `Submission ${status.toLowerCase()} successfully`,
       status
     });
-  } catch (error) {
-    console.error("Validate Submission Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -568,9 +546,7 @@ export const flagSubmission = async (req, res) => {
       flags: newFlags,
       status: 'REJECTED'
     });
-  } catch (error) {
-    console.error("Flag Submission Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -610,9 +586,7 @@ export const getPendingSubmissions = async (req, res) => {
       count: result.length,
       submissions: result 
     });
-  } catch (error) {
-    console.error("Get Pending Submissions Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -693,9 +667,7 @@ export const reverifySubmission = async (req, res) => {
       checks: fraudCheck.checks
     });
 
-  } catch (error) {
-    console.error("Reverify Submission Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -709,9 +681,7 @@ export const getAdminFraudAlerts = async (req, res) => {
       count: alerts.length,
       alerts
     });
-  } catch (error) {
-    console.error("Get Fraud Alerts Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -745,9 +715,7 @@ export const reviewAdminFraudAlert = async (req, res) => {
       message: `Fraud alert ${action}ed successfully`,
       alert
     });
-  } catch (error) {
-    console.error("Review Fraud Alert Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -772,8 +740,6 @@ export const getVerificationHistory = async (req, res) => {
       snapshots,
       fraudAlerts
     });
-  } catch (error) {
-    console.error("Get Verification History Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

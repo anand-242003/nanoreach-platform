@@ -119,9 +119,7 @@ export const trackClick = async (req, res) => {
                        referralLink.campaign?.rules || 
                        'https://example.com';
     res.redirect(redirectUrl);
-  } catch (error) {
-    console.error("Track Click Error:", error);
-    res.status(500).send('<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Error</h1><p>Something went wrong. Please try again later.</p></body></html>');
+  } catch (error) {res.status(500).send('<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Error</h1><p>Something went wrong. Please try again later.</p></body></html>');
   }
 };
 
@@ -172,9 +170,7 @@ export const getMyReferralStats = async (req, res) => {
     }));
 
     res.json({ stats });
-  } catch (error) {
-    console.error("Get Referral Stats Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -257,9 +253,7 @@ export const getCampaignReferralStats = async (req, res) => {
         totalSuspicious: clicks.filter(c => c.isSuspicious).length,
       },
     });
-  } catch (error) {
-    console.error("Get Campaign Referral Stats Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -316,9 +310,7 @@ export const trackConversion = async (req, res) => {
         revenue: (link.revenue || 0) + (revenue || 0),
       },
     });
-  } catch (error) {
-    console.error("Track Conversion Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -371,8 +363,6 @@ export const getReferralLinkInfo = async (req, res) => {
         conversions: link.conversions || 0,
       },
     });
-  } catch (error) {
-    console.error("Get Referral Link Info Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

@@ -19,8 +19,16 @@ const checks = {
   failed: [],
 };
 
-console.log('\n NanoReach Platform - Security Verification\n');
-console.log('='.repeat(60));
+function printSection(title, messages) {
+  if (messages.length === 0) {
+    return;
+  }
+
+  console.log(`\n${title} (${messages.length})`);
+  messages.forEach((message) => {
+    console.log(`- ${message}`);
+  });
+}
 
 async function checkDatabase() {
   try {
@@ -139,8 +147,9 @@ function checkJWTSecret() {
 }
 
 async function runAllChecks() {
-  console.log('\n Running verification checks...\n');
-  
+  console.log('\nNanoReach Platform Security Verification');
+  console.log('='.repeat(44));
+
   checkEnvironmentVariables();
   checkRequiredFiles();
   checkUploadDirectory();
@@ -148,56 +157,27 @@ async function runAllChecks() {
   await checkSecurityFeatures();
   await checkDatabase();
 
-  console.log('\n' + '='.repeat(60));
-  console.log(' VERIFICATION RESULTS\n');
-  
-  if (checks.passed.length > 0) {
-    console.log(' PASSED (' + checks.passed.length + '):\n');
-    checks.passed.forEach(msg => console.log('  ' + msg));
-    console.log('');
-  }
-  
-  if (checks.warnings.length > 0) {
-    console.log('️  WARNINGS (' + checks.warnings.length + '):\n');
-    checks.warnings.forEach(msg => console.log('  ' + msg));
-    console.log('');
-  }
-  
-  if (checks.failed.length > 0) {
-    console.log(' FAILED (' + checks.failed.length + '):\n');
-    checks.failed.forEach(msg => console.log('  ' + msg));
-    console.log('');
-  }
+  printSection('Passed', checks.passed);
+  printSection('Warnings', checks.warnings);
+  printSection('Failed', checks.failed);
 
-  console.log('='.repeat(60));
-  
+  console.log(`\nSummary: ${checks.passed.length} passed, ${checks.warnings.length} warnings, ${checks.failed.length} failed`);
+
+  await prisma.$disconnect();
+
   if (checks.failed.length > 0) {
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('\n VERIFICATION WARNINGS in production — server will still start.');
-    } else {
-      console.log('\n VERIFICATION FAILED');
-      console.log('\nPlease fix the issues above before starting the server.');
+    if (process.env.NODE_ENV !== 'production') {
       process.exit(1);
     }
-  } else if (checks.warnings.length > 0) {
-    console.log('\n️  VERIFICATION PASSED WITH WARNINGS');
-    console.log('\nThe server can start, but address warnings for production.');
-  } else {
-    console.log('\n ALL CHECKS PASSED');
-    console.log('\nYour platform is ready to start with enterprise-grade security!');
+    return;
   }
-  
-  console.log('\n' + '='.repeat(60));
-  console.log('\n Documentation:');
-  console.log('  • Security Audit: SECURITY_AUDIT_REPORT.md');
-  console.log('  • Testing Guide: TESTING_EMAIL_VERIFICATION.md');
-  console.log('  • Implementation: PRIORITY_1_FIXES_COMPLETE.md');
-  console.log('\n Start server: npm run dev\n');
-  
-  await prisma.$disconnect();
+
+  if (checks.warnings.length > 0) {
+    process.exit(0);
+  }
 }
 
-runAllChecks().catch(error => {
-  console.error('\n Verification script error:', error);
+runAllChecks().catch(async () => {
+  await prisma.$disconnect().catch(() => {});
   process.exit(1);
 });

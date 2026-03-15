@@ -21,7 +21,7 @@ export default function PendingPayments() {
       ]);
       setEscrows(escrowsRes.data.escrows || []);
       setBankDetails(bankRes.data.bankDetails);
-    } catch (error) { console.error('Error:', error); } 
+    } catch (error) {} 
     finally { setLoading(false); }
   };
 

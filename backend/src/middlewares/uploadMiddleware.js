@@ -203,9 +203,7 @@ export const validateUploadedFile = async (req, res, next) => {
     }
     
     next();
-  } catch (error) {
-    console.error('File Validation Error:', error);
-    if (req.file) {
+  } catch (error) {if (req.file) {
       fs.unlinkSync(req.file.path);
     }
     res.status(500).json({ message: 'File validation failed' });
@@ -220,9 +218,7 @@ export const cleanupOnError = (req, res, next) => {
     if (res.statusCode >= 400 && req.file) {
       try {
         fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.error('Cleanup Error:', err);
-      }
+      } catch (err) {}
     }
     originalSend.call(this, data);
   };

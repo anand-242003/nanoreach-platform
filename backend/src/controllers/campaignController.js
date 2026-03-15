@@ -73,9 +73,7 @@ export const getAllCampaigns = async (req, res) => {
         pages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
-    console.error("Get Campaigns Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -112,9 +110,7 @@ export const getMyCampaigns = async (req, res) => {
     });
 
     res.json({ campaigns });
-  } catch (error) {
-    console.error("Get My Campaigns Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -160,9 +156,7 @@ export const getCampaignById = async (req, res) => {
     }
 
     res.json({ campaign });
-  } catch (error) {
-    console.error("Get Campaign Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -308,9 +302,7 @@ export const createCampaign = async (req, res) => {
       message: "Campaign created as draft. Review and publish when ready.",
       campaign,
     });
-  } catch (error) {
-    console.error("Create Campaign Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -348,9 +340,7 @@ export const updateCampaign = async (req, res) => {
     });
 
     res.json({ message: "Campaign updated", campaign: updatedCampaign });
-  } catch (error) {
-    console.error("Update Campaign Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -379,9 +369,7 @@ export const deleteCampaign = async (req, res) => {
     await prisma.campaign.delete({ where: { id } });
 
     res.json({ message: "Campaign deleted" });
-  } catch (error) {
-    console.error("Delete Campaign Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -416,9 +404,7 @@ export const publishCampaign = async (req, res) => {
       message: "Campaign published successfully", 
       campaign: publishedCampaign 
     });
-  } catch (error) {
-    console.error("Publish Campaign Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -501,9 +487,7 @@ export const getMatchingCampaigns = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
-    console.error("Get Matching Campaigns Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -562,9 +546,7 @@ export const updateCampaignStatus = async (req, res) => {
       message: "Campaign status updated",
       campaign: updatedCampaign,
     });
-  } catch (error) {
-    console.error("Update Campaign Status Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -600,9 +582,7 @@ export const getROIEstimate = async (req, res) => {
     };
 
     res.json({ estimate });
-  } catch (error) {
-    console.error("Get ROI Estimate Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -716,8 +696,6 @@ export const getCampaignLeaderboard = async (req, res) => {
       leaderboard: rankedLeaderboard,
       totalParticipants: rankedLeaderboard.length,
     });
-  } catch (error) {
-    console.error("Get Leaderboard Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

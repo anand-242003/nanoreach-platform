@@ -7,10 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed": "node prisma/seed.js",
-    "verify": "node src/verify-security.js",
-    "setup-admin": "node scripts/setupAdmin.js",
-    "verify-admin": "node scripts/verifyAdminEmail.js"
+    "verify": "node src/verify-security.js"
   },
   "keywords": [],
   "author": "",

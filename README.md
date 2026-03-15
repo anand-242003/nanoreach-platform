@@ -45,15 +45,17 @@ npm run dev          # Backend (port 3001)
 cd ../frontend && npm run dev    # Frontend (port 5173)
 ```
 
-### Admin Setup
+### Data Setup
+
+Use the backend API to create users and application data instead of local seed or setup scripts.
+
+Common entry points:
 
 ```bash
-cd backend
-node scripts/setupAdmin.js
-
-# Login credentials:
-# Email: admin@drkmttr.com
-# Password: Admin@123
+POST /api/auth/signup
+POST /api/auth/login
+GET /api/admin/verifications/influencers
+GET /api/admin/verifications/brands
 ```
 
 ## Project Structure
@@ -67,7 +69,6 @@ nanoreach-platform/
 │   │   ├── routes/
 │   │   ├── services/
 │   │   └── middlewares/
-│   └── scripts/setupAdmin.js
 └── frontend/
     └── src/
         ├── components/

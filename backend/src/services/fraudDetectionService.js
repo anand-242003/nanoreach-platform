@@ -142,9 +142,7 @@ export const detectAbnormalGrowth = async (submissionId, currentMetrics) => {
       severity: 'NONE'
     };
 
-  } catch (error) {
-    console.error('Growth Pattern Analysis Error:', error);
-    return { 
+  } catch (error) {return { 
       fraudulent: false, 
       error: error.message,
       severity: 'NONE'
@@ -323,9 +321,7 @@ export const createFraudAlert = async (submissionId, fraudResults) => {
     });
 
     return alert;
-  } catch (error) {
-    console.error('Create Fraud Alert Error:', error);
-    return null;
+  } catch (error) {return null;
   }
 };
 
@@ -365,9 +361,7 @@ export const getFraudAlerts = async (status = 'PENDING') => {
     }));
 
     return enrichedAlerts;
-  } catch (error) {
-    console.error('Get Fraud Alerts Error:', error);
-    return [];
+  } catch (error) {return [];
   }
 };
 
@@ -397,8 +391,6 @@ export const reviewFraudAlert = async (alertId, adminId, action, notes) => {
     }
 
     return alert;
-  } catch (error) {
-    console.error('Review Fraud Alert Error:', error);
-    throw error;
+  } catch (error) {throw error;
   }
 };

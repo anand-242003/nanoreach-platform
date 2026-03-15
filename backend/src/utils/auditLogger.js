@@ -77,13 +77,7 @@ export const logAuditEvent = async ({
       severity,
     };
 
-    if (severity === 'CRITICAL' || severity === 'ERROR') {
-      console.error('[AUDIT]', JSON.stringify(auditEntry));
-    } else if (severity === 'WARNING') {
-      console.warn('[AUDIT]', JSON.stringify(auditEntry));
-    } else {
-      console.log('[AUDIT]', JSON.stringify(auditEntry));
-    }
+    if (severity === 'CRITICAL' || severity === 'ERROR') {} else if (severity === 'WARNING') {} else {}
 
     if (['CRITICAL', 'ERROR'].includes(severity) || eventType.includes('PAYMENT') || eventType.includes('ESCROW')) {
       await prisma.adminAction.create({
@@ -94,15 +88,11 @@ export const logAuditEvent = async ({
           targetId: targetId || 'N/A',
           notes: JSON.stringify(metadata),
         },
-      }).catch(err => {
-        console.error('[AUDIT] Failed to persist audit log:', err);
-      });
+      }).catch(err => {});
     }
     
     return auditEntry;
-  } catch (error) {
-    console.error('[AUDIT] Logging failed:', error);
-    return null;
+  } catch (error) {return null;
   }
 };
 

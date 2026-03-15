@@ -78,10 +78,7 @@ export const verifyYouTubeMetrics = async (videoUrl) => {
       verifiedAt: new Date().toISOString()
     };
 
-  } catch (error) {
-    console.error('YouTube Verification Error:', error);
-
-    if (error.response?.status === 403) {
+  } catch (error) {if (error.response?.status === 403) {
       return { 
         verified: false, 
         error: 'YouTube API quota exceeded or invalid API key' 
@@ -121,9 +118,7 @@ export const createMetricsSnapshot = async (submissionId, verifiedData, fraudRes
     });
 
     return snapshot;
-  } catch (error) {
-    console.error('Create Snapshot Error:', error);
-    throw error;
+  } catch (error) {throw error;
   }
 };
 
@@ -144,8 +139,6 @@ export const getMetricsHistory = async (submissionId, limit = 30) => {
     });
 
     return snapshots;
-  } catch (error) {
-    console.error('Get Metrics History Error:', error);
-    return [];
+  } catch (error) {return [];
   }
 };

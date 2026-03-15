@@ -165,15 +165,7 @@ export const sendVerificationEmail = async (email, name, token) => {
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
     const { subject, html, text } = templates.emailVerification(name, verificationUrl);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(' EMAIL VERIFICATION (Development Mode)');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`To: ${email}`);
-      console.log(`Subject: ${subject}`);
-      console.log(`\n Verification Link:\n${verificationUrl}\n`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      return { success: true, devMode: true, verificationUrl };
+    if (process.env.NODE_ENV === 'development') {return { success: true, devMode: true, verificationUrl };
     }
 
     const transporter = createTransporter();
@@ -186,9 +178,7 @@ export const sendVerificationEmail = async (email, name, token) => {
     });
 
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('Send Verification Email Error:', error);
-    return { success: false, error: error.message };
+  } catch (error) {return { success: false, error: error.message };
   }
 };
 
@@ -197,15 +187,7 @@ export const sendPasswordResetEmail = async (email, name, token) => {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
     const { subject, html, text } = templates.passwordReset(name, resetUrl);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(' PASSWORD RESET (Development Mode)');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`To: ${email}`);
-      console.log(`Subject: ${subject}`);
-      console.log(`\n Reset Link:\n${resetUrl}\n`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      return { success: true, devMode: true, resetUrl };
+    if (process.env.NODE_ENV === 'development') {return { success: true, devMode: true, resetUrl };
     }
 
     const transporter = createTransporter();
@@ -218,9 +200,7 @@ export const sendPasswordResetEmail = async (email, name, token) => {
     });
 
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('Send Password Reset Email Error:', error);
-    return { success: false, error: error.message };
+  } catch (error) {return { success: false, error: error.message };
   }
 };
 
@@ -228,14 +208,7 @@ export const sendWelcomeEmail = async (email, name, role) => {
   try {
     const { subject, html, text } = templates.welcomeEmail(name, role);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(' WELCOME EMAIL (Development Mode)');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`To: ${email}`);
-      console.log(`Subject: ${subject}`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      return { success: true, devMode: true };
+    if (process.env.NODE_ENV === 'development') {return { success: true, devMode: true };
     }
 
     const transporter = createTransporter();
@@ -248,9 +221,7 @@ export const sendWelcomeEmail = async (email, name, role) => {
     });
 
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('Send Welcome Email Error:', error);
-    return { success: false, error: error.message };
+  } catch (error) {return { success: false, error: error.message };
   }
 };
 

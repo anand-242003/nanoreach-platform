@@ -116,9 +116,7 @@ export const signup = async (req, res) => {
             requiresEmailVerification: true,
         });
 
-    } catch (error) {
-        console.error("Signup Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (error) {res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -237,9 +235,7 @@ export const login = async (req, res) => {
             redirectTo: !hasProfile ? "/onboarding" : "/dashboard",
         });
 
-    } catch (error) {
-        console.error("Login Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (error) {res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -293,9 +289,7 @@ export const getMe = async (req, res) => {
     }
 
     res.json({ user });
-  } catch (error) {
-    console.error("Get Me Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -344,9 +338,7 @@ export const getVerificationStatus = async (req, res) => {
       profile: user.role === 'INFLUENCER' ? user.influencerProfile : user.brandProfile,
       role: user.role
     });
-  } catch (error) {
-    console.error("Get Verification Status Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -399,9 +391,7 @@ export const verifyEmail = async (req, res) => {
       message: "Email verified successfully! You can now log in.",
       verified: true
     });
-  } catch (error) {
-    console.error("Email Verification Error:", error);
-    res.status(500).json({ message: "Server error during email verification" });
+  } catch (error) {res.status(500).json({ message: "Server error during email verification" });
   }
 };
 
@@ -452,9 +442,7 @@ export const resendVerificationEmail = async (req, res) => {
     res.json({ 
       message: "Verification email sent! Please check your inbox." 
     });
-  } catch (error) {
-    console.error("Resend Verification Error:", error);
-    res.status(500).json({ message: "Server error while resending verification email" });
+  } catch (error) {res.status(500).json({ message: "Server error while resending verification email" });
   }
 };
 
@@ -500,9 +488,7 @@ export const forgotPassword = async (req, res) => {
     res.json({ 
       message: "If that email is registered, a password reset link will be sent." 
     });
-  } catch (error) {
-    console.error("Forgot Password Error:", error);
-    res.status(500).json({ message: "Server error while processing password reset request" });
+  } catch (error) {res.status(500).json({ message: "Server error while processing password reset request" });
   }
 };
 
@@ -563,9 +549,7 @@ export const resetPassword = async (req, res) => {
       message: "Password reset successfully! You can now log in with your new password.",
       success: true
     });
-  } catch (error) {
-    console.error("Reset Password Error:", error);
-    res.status(500).json({ message: "Server error during password reset" });
+  } catch (error) {res.status(500).json({ message: "Server error during password reset" });
   }
 };
 
@@ -585,9 +569,7 @@ export const updateUserProfile = async (req, res) => {
     });
 
     res.json({ message: 'Profile updated', user: updated });
-  } catch (error) {
-    console.error('Update Profile Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -613,8 +595,6 @@ export const changePassword = async (req, res) => {
     await prisma.user.update({ where: { id: userId }, data: { passwordHash: hashed } });
 
     res.json({ message: 'Password changed successfully' });
-  } catch (error) {
-    console.error('Change Password Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };

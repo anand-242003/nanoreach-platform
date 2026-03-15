@@ -112,9 +112,7 @@ export const createApplication = async (req, res) => {
   } catch (error) {
     if (error.message === 'ALREADY_APPLIED') {
       return res.status(400).json({ message: "You have already applied to this campaign" });
-    }
-    console.error("Create Application Error:", error);
-    res.status(500).json({ message: "Server error" });
+    }res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -165,9 +163,7 @@ export const getMyApplications = async (req, res) => {
     });
 
     res.json({ applications });
-  } catch (error) {
-    console.error("Get My Applications Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -208,9 +204,7 @@ export const getCampaignApplications = async (req, res) => {
     });
 
     res.json({ applications });
-  } catch (error) {
-    console.error("Get Campaign Applications Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -272,9 +266,7 @@ export const reviewApplication = async (req, res) => {
       message: `Application ${status.toLowerCase()}`,
       application: updatedApplication,
     });
-  } catch (error) {
-    console.error("Review Application Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -328,9 +320,7 @@ export const getPendingApplications = async (req, res) => {
         perPage: parseInt(limit),
       },
     });
-  } catch (error) {
-    console.error("Get Pending Applications Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -401,9 +391,7 @@ export const adminApproveApplication = async (req, res) => {
       application: updatedApplication,
       referralLink,
     });
-  } catch (error) {
-    console.error("Admin Approve Application Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -465,9 +453,7 @@ export const adminRejectApplication = async (req, res) => {
       message: "Application rejected",
       application: updatedApplication,
     });
-  } catch (error) {
-    console.error("Admin Reject Application Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -525,8 +511,6 @@ export const getApplicationById = async (req, res) => {
     }
 
     res.json({ application });
-  } catch (error) {
-    console.error("Get Application By ID Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {res.status(500).json({ message: "Server error" });
   }
 };

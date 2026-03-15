@@ -56,9 +56,7 @@ export const createOrUpdateProfile = async (req, res) => {
       message: existingProfile ? 'Profile updated' : 'Profile created',
       profile
     });
-  } catch (error) {
-    console.error('Profile Error:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+  } catch (error) {res.status(500).json({ message: error.message || 'Server error' });
   }
 };
 
@@ -77,9 +75,7 @@ export const addSocialLinks = async (req, res) => {
     });
 
     res.json({ message: 'Social links updated', profile });
-  } catch (error) {
-    console.error('Add Social Links Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -99,9 +95,7 @@ export const uploadDocuments = async (req, res) => {
     });
 
     res.json({ message: 'Document uploaded successfully', document: req.file.path });
-  } catch (error) {
-    console.error('Upload Documents Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -127,9 +121,7 @@ export const addPastWork = async (req, res) => {
     });
 
     res.json({ message: 'Past work added', profile });
-  } catch (error) {
-    console.error('Add Past Work Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -158,9 +150,7 @@ export const submitForVerification = async (req, res) => {
       message: 'Profile submitted for verification',
       verificationStatus: 'UNDER_REVIEW'
     });
-  } catch (error) {
-    console.error('Submit Verification Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -185,8 +175,6 @@ export const getMyProfile = async (req, res) => {
     }
 
     res.json({ profile });
-  } catch (error) {
-    console.error('Get Profile Error:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };
