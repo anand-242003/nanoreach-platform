@@ -739,13 +739,13 @@ export const changePassword = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    const valid = await comparePassword(currentPassword, user.passwordHash);
+    const valid = await comparePassword(currentPassword, user.password);
     if (!valid) {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
     const hashed = await hashPassword(newPassword);
-    await prisma.user.update({ where: { id: userId }, data: { passwordHash: hashed } });
+    await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {res.status(500).json({ message: 'Server error' });
