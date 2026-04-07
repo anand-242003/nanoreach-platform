@@ -97,7 +97,9 @@ export const uploadDocuments = async (req, res) => {
     });
 
     res.json({ message: 'Document uploaded successfully', document: documentUrl });
-  } catch (error) {res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error('[INFLUENCER_DOCUMENT_UPLOAD] ERROR:', error?.message || error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

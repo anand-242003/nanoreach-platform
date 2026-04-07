@@ -65,7 +65,11 @@ export const getMe = createAsyncThunk(
       const data = await authAPI.getMeAPI();
       return data.user;
     } catch (error) {
-      return rejectWithValue('Not authenticated');
+      const status = error?.response?.status;
+      return rejectWithValue({
+        message: status === 401 ? 'Not authenticated' : 'Failed to fetch current user',
+        status,
+      });
     }
   }
 );
@@ -165,13 +169,15 @@ const authSlice = createSlice({
         state.verificationStatus = action.payload?.verificationStatus || 'PENDING';
         state.initialized = true;
       })
-      .addCase(getMe.rejected, (state) => {
+      .addCase(getMe.rejected, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.verificationStatus = null;
         state.initialized = true;
-        clearAuthToken();
+        if (action.payload?.status === 401) {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.verificationStatus = null;
+          clearAuthToken();
+        }
       })
 
       .addCase(fetchVerificationStatus.fulfilled, (state, action) => {

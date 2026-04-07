@@ -82,6 +82,7 @@ app.use((err, req, res, next) => {
   if (err?.message?.includes('Not allowed by CORS')) {
     return res.status(403).json({ message: 'CORS blocked this origin' });
   }
+  console.error('[SERVER_ERROR]', err?.message || err);
   res.status(500).json({ message: "Internal server error" });
 });
 
