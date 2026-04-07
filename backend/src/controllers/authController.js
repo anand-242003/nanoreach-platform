@@ -182,6 +182,7 @@ export const signup = async (req, res) => {
         console.log('[SIGNUP] SUCCESS - User:', user.id, 'Email:', email);
         return res.status(201).json({
             message: "User registered successfully. Please check your email to verify your account.",
+          token,
             user: {
                 id: user.id,
                 name: user.name,
@@ -309,6 +310,7 @@ export const login = async (req, res) => {
 
         const payload = buildAuthResponsePayload(user);
         payload.message = "Login successful";
+        payload.token = token;
         res.json(payload);
 
     } catch (error) {
@@ -382,6 +384,7 @@ export const googleOauth = async (req, res) => {
 
     const response = buildAuthResponsePayload(user);
     response.message = "Google authentication successful";
+    response.token = token;
 
     return res.json(response);
   } catch (error) {

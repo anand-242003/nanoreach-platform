@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authAPI from '../api/auth';
+import { setAuthToken, clearAuthToken } from '../lib/authToken';
 
 const initialState = {
   user: null,
@@ -102,6 +103,7 @@ const authSlice = createSlice({
         state.user = action.payload.user || action.payload;
         state.verificationStatus = action.payload.user?.verificationStatus || 'PENDING';
         state.initialized = true;
+        setAuthToken(action.payload.token);
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -118,6 +120,7 @@ const authSlice = createSlice({
         state.user = action.payload.user || action.payload;
         state.verificationStatus = action.payload.user?.verificationStatus || 'PENDING';
         state.initialized = true;
+        setAuthToken(action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -135,6 +138,7 @@ const authSlice = createSlice({
         state.user = action.payload.user || action.payload;
         state.verificationStatus = action.payload.user?.verificationStatus || 'PENDING';
         state.initialized = true;
+        setAuthToken(action.payload.token);
       })
       .addCase(googleAuth.rejected, (state, action) => {
         state.loading = false;
@@ -148,6 +152,7 @@ const authSlice = createSlice({
         state.verificationStatus = null;
         state.error = null;
         state.initialized = true;
+        clearAuthToken();
       })
 
       .addCase(getMe.pending, (state) => {
@@ -166,6 +171,7 @@ const authSlice = createSlice({
         state.user = null;
         state.verificationStatus = null;
         state.initialized = true;
+        clearAuthToken();
       })
 
       .addCase(fetchVerificationStatus.fulfilled, (state, action) => {

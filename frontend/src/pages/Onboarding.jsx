@@ -8,12 +8,24 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { getMe } from '@/store/authSlice';
+import { getAuthToken } from '@/lib/authToken';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 const industries = ['E-commerce', 'SaaS', 'FMCG', 'Education', 'Healthcare', 'Finance', 'Retail', 'Media'];
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+const buildAuthConfig = (extraHeaders = {}) => {
+  const token = getAuthToken();
+  return {
+    withCredentials: true,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extraHeaders,
+    },
+  };
+};
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -216,29 +228,28 @@ export default function Onboarding() {
         bio: influencerData.bio,
         youtubeChannelUrl: influencerData.youtubeChannelUrl,
         categoryTags: JSON.stringify(influencerData.categoryTags),
-      }, { withCredentials: true });
+      }, buildAuthConfig());
 
       await axios.post(`${API_URL}/api/influencer/profile/social`, {
         youtubeChannelUrl: influencerData.youtubeChannelUrl,
         youtubeChannelId: influencerData.youtubeChannelId,
         subscriberCount: influencerData.subscriberCount,
-      }, { withCredentials: true });
+      }, buildAuthConfig());
 
       const validWorkLinks = influencerData.pastWorkLinks.filter(link => link.trim() !== '');
       if (validWorkLinks.length > 0) {
         await axios.post(`${API_URL}/api/influencer/profile/work`, {
           workLinks: JSON.stringify(validWorkLinks),
-        }, { withCredentials: true });
+        }, buildAuthConfig());
       }
 
       const docFormData = new FormData();
       docFormData.append('document', influencerData.document);
       await axios.post(`${API_URL}/api/influencer/profile/documents`, docFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
+        ...buildAuthConfig({ 'Content-Type': 'multipart/form-data' }),
       });
 
-      await axios.post(`${API_URL}/api/influencer/submit-verification`, {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/influencer/submit-verification`, {}, buildAuthConfig());
 
       dispatch(getMe());
       navigate('/dashboard');
@@ -263,8 +274,7 @@ export default function Onboarding() {
       docFormData.append('document', brandData.document);
 
       await axios.post(`${API_URL}/api/profile/brand`, docFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
+        ...buildAuthConfig({ 'Content-Type': 'multipart/form-data' }),
       });
 
       dispatch(getMe());

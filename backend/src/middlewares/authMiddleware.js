@@ -3,7 +3,13 @@ import prisma from "../config/db.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const cookieToken = req.cookies?.token;
+    const authHeader = req.headers?.authorization || "";
+    const headerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : null;
+
+    const token = cookieToken || headerToken;
 
     if (!token) {
       return res.status(401).json({ message: "Not authorized, no token" });

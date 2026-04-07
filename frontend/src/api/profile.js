@@ -1,9 +1,19 @@
 import axios from 'axios';
+import { getAuthToken } from '../lib/authToken';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+});
+
+axiosInstance.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const createInfluencerProfile = async (formData) => {
