@@ -87,14 +87,16 @@ export const uploadDocuments = async (req, res) => {
       return res.status(400).json({ message: 'No document uploaded' });
     }
 
+    const documentUrl = req.file.location || req.file.path;
+
     const profile = await prisma.influencerProfile.update({
       where: { userId },
       data: {
-        identityDocument: req.file.path,
+        identityDocument: documentUrl,
       }
     });
 
-    res.json({ message: 'Document uploaded successfully', document: req.file.path });
+    res.json({ message: 'Document uploaded successfully', document: documentUrl });
   } catch (error) {res.status(500).json({ message: 'Server error' });
   }
 };

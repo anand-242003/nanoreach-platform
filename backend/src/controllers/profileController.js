@@ -25,7 +25,7 @@ export const createInfluencerProfile = async (req, res) => {
       bio,
       youtubeChannelUrl,
       categoryTags: Array.isArray(tags) ? tags : [tags],
-      ...(req.file && { identityDocument: req.file.path }),
+      ...(req.file && { identityDocument: req.file.location || req.file.path }),
     };
 
     const profile = await prisma.influencerProfile.upsert({
@@ -92,7 +92,7 @@ export const createBrandProfile = async (req, res) => {
       industry,
       gstNumber: normalizedGst,
       panNumber: normalizedPan,
-      ...(req.file && { businessDocument: req.file.path }),
+      ...(req.file && { businessDocument: req.file.location || req.file.path }),
     };
 
     const profile = await prisma.brandProfile.upsert({
@@ -166,7 +166,7 @@ export const updateInfluencerProfile = async (req, res) => {
     };
 
     if (req.file) {
-      updateData.identityDocument = req.file.path;
+      updateData.identityDocument = req.file.location || req.file.path;
     }
 
     const profile = await prisma.influencerProfile.update({
@@ -210,7 +210,7 @@ export const updateBrandProfile = async (req, res) => {
     };
 
     if (req.file) {
-      updateData.businessDocument = req.file.path;
+      updateData.businessDocument = req.file.location || req.file.path;
     }
 
     const profile = await prisma.brandProfile.update({

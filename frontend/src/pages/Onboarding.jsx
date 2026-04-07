@@ -9,7 +9,7 @@ import {
 import axios from 'axios';
 import { getMe } from '@/store/authSlice';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 const industries = ['E-commerce', 'SaaS', 'FMCG', 'Education', 'Healthcare', 'Finance', 'Retail', 'Media'];
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
