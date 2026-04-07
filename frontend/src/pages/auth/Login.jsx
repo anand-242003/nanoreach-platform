@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { login, clearError } from "@/store/authSlice";
+import { login, googleAuth, clearError } from "@/store/authSlice";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
+import { GoogleLogin } from "@react-oauth/google";
 import { Loader2, Eye, EyeOff, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,20 @@ export default function Login() {
 
   const onSubmit = (data) => {
     dispatch(login({ email: data.email, password: data.password }));
+  };
+
+  const handleGoogleLogin = async (response) => {
+    if (!response?.credential) {
+      toast({ title: "Login Failed", description: "Google authentication failed", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await dispatch(googleAuth({ credential: response.credential })).unwrap();
+      toast({ title: "Welcome back", description: "Signed in with Google." });
+    } catch {
+      // Error toast is already handled through Redux error state effect.
+    }
   };
 
   return (
@@ -134,6 +149,23 @@ export default function Login() {
             </motion.div>
 
             <Form {...form}>
+              <motion.div variants={itemVariants} className="space-y-3">
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      toast({ title: "Login Failed", description: "Google authentication failed", variant: "destructive" });
+                    }}
+                    text="signin_with"
+                    shape="pill"
+                  />
+                </div>
+                <div className="relative text-center text-xs uppercase tracking-wide text-muted-foreground">
+                  <span className="bg-background px-2 relative z-10">or continue with email</span>
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-border -z-0" />
+                </div>
+              </motion.div>
+
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <motion.div variants={itemVariants}>
                   <FormField

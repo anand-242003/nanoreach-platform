@@ -34,6 +34,18 @@ export const login = createAsyncThunk(
   }
 );
 
+export const googleAuth = createAsyncThunk(
+  'auth/googleAuth',
+  async ({ credential, role }, { rejectWithValue }) => {
+    try {
+      const data = await authAPI.googleAuthAPI({ credential, role });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Google authentication failed');
+    }
+  }
+);
+
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -108,6 +120,23 @@ const authSlice = createSlice({
         state.initialized = true;
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.initialized = true;
+      })
+
+      .addCase(googleAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user || action.payload;
+        state.verificationStatus = action.payload.user?.verificationStatus || 'PENDING';
+        state.initialized = true;
+      })
+      .addCase(googleAuth.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.initialized = true;

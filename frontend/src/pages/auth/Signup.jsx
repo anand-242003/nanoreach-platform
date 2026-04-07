@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { signup, clearError } from "@/store/authSlice";
+import { signup, googleAuth, clearError } from "@/store/authSlice";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
+import { GoogleLogin } from "@react-oauth/google";
 import { Loader2, Eye, EyeOff, Zap, Building2, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +79,22 @@ export default function Signup() {
         role: data.role,
       })).unwrap();
       toast({ title: "Welcome to NanoReach!", description: "Account created successfully." });
+      navigate("/onboarding");
+    } catch {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignup = async (response) => {
+    if (!response?.credential) {
+      toast({ title: "Signup Failed", description: "Google authentication failed", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(googleAuth({ credential: response.credential, role: selectedRole })).unwrap();
+      toast({ title: "Welcome to NanoReach!", description: "Signed in with Google." });
       navigate("/onboarding");
     } catch {
       setIsSubmitting(false);
@@ -166,6 +183,23 @@ export default function Signup() {
             </motion.div>
 
             <Form {...form}>
+              <motion.div variants={itemVariants} className="space-y-3">
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSignup}
+                    onError={() => {
+                      toast({ title: "Signup Failed", description: "Google authentication failed", variant: "destructive" });
+                    }}
+                    text="signup_with"
+                    shape="pill"
+                  />
+                </div>
+                <div className="relative text-center text-xs uppercase tracking-wide text-muted-foreground">
+                  <span className="bg-background px-2 relative z-10">or continue with email</span>
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-border -z-0" />
+                </div>
+              </motion.div>
+
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <motion.div variants={itemVariants}>
                   <p className="text-sm font-medium text-foreground mb-2">I am a…</p>

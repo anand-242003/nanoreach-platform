@@ -1,4 +1,5 @@
 import prisma from "../config/db.js";
+import { isValidGST, isValidPAN } from "../utils/validators.js";
 
 export const createInfluencerProfile = async (req, res) => {
   try {
@@ -56,15 +57,28 @@ export const createBrandProfile = async (req, res) => {
       return res.status(403).json({ message: 'Only brands can create brand profiles' });
     }
 
-    if (!companyName || !website || !industry) {
+    const normalizedPan = panNumber?.trim()?.toUpperCase();
+    const normalizedGst = gstNumber?.trim()?.toUpperCase();
+
+    if (!companyName || !website || !industry || !normalizedPan || !normalizedGst) {
       return res.status(400).json({ 
-        message: 'Company name, website, and industry are required',
+        message: 'Company name, website, industry, PAN, and GST are required',
         missingFields: {
           companyName: !companyName,
           website: !website,
           industry: !industry,
+          panNumber: !normalizedPan,
+          gstNumber: !normalizedGst,
         }
       });
+    }
+
+    if (!isValidPAN(normalizedPan)) {
+      return res.status(400).json({ message: 'Invalid PAN format' });
+    }
+
+    if (!isValidGST(normalizedGst)) {
+      return res.status(400).json({ message: 'Invalid GST format' });
     }
 
     const existingBrandProfile = await prisma.brandProfile.findUnique({ where: { userId } });
@@ -76,8 +90,8 @@ export const createBrandProfile = async (req, res) => {
       companyName,
       website,
       industry,
-      gstNumber: gstNumber || null,
-      panNumber: panNumber || null,
+      gstNumber: normalizedGst,
+      panNumber: normalizedPan,
       ...(req.file && { businessDocument: req.file.path }),
     };
 
@@ -170,12 +184,29 @@ export const updateBrandProfile = async (req, res) => {
     const { companyName, website, industry, gstNumber, panNumber } = req.body;
     const userId = req.user.id;
 
+    const normalizedPan = panNumber?.trim()?.toUpperCase();
+    const normalizedGst = gstNumber?.trim()?.toUpperCase();
+
+    if (!companyName || !website || !industry || !normalizedPan || !normalizedGst) {
+      return res.status(400).json({
+        message: 'Company name, website, industry, PAN, and GST are required',
+      });
+    }
+
+    if (!isValidPAN(normalizedPan)) {
+      return res.status(400).json({ message: 'Invalid PAN format' });
+    }
+
+    if (!isValidGST(normalizedGst)) {
+      return res.status(400).json({ message: 'Invalid GST format' });
+    }
+
     const updateData = {
       companyName,
       website,
       industry,
-      gstNumber,
-      panNumber,
+      gstNumber: normalizedGst,
+      panNumber: normalizedPan,
     };
 
     if (req.file) {

@@ -17,6 +17,19 @@ export const loginAPI = async (credentials) => {
   return response.data;
 };
 
+export const googleAuthAPI = async ({ credential, role }) => {
+  try {
+    const response = await axiosInstance.post('/api/auth/oauth/google', { credential, role });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      const fallback = await axiosInstance.post('/api/auth/google', { credential, role });
+      return fallback.data;
+    }
+    throw error;
+  }
+};
+
 export const logoutAPI = async () => {
   const response = await axiosInstance.post('/api/auth/logout');
   return response.data;

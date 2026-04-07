@@ -33,9 +33,16 @@ cd ../frontend && npm install
 DATABASE_URL="mongodb+srv://..."
 JWT_SECRET="your-128-char-secret"
 PORT=3001
+NODE_ENV="production"
+FRONTEND_URL="https://your-vercel-domain.vercel.app"
 SMTP_USER="your-email@gmail.com"
 SMTP_PASS="your-app-password"
+GOOGLE_CLIENT_ID="your-google-oauth-client-id"
 YOUTUBE_API_KEY="your-youtube-api-key"
+
+# Configure environment (frontend/.env)
+VITE_API_URL="https://drkmttr-production-a4df.up.railway.app"
+VITE_GOOGLE_CLIENT_ID="your-google-oauth-client-id"
 
 # Generate Prisma client
 cd backend && npx prisma generate
@@ -124,6 +131,17 @@ npm run preview      # Preview production build
 npx prisma studio    # Open database GUI
 npx prisma db push   # Push schema changes
 ```
+
+## Deployment Notes (Vercel + Railway)
+
+- For Railway backend, make sure service root directory is set to backend and start command is npm start.
+- Add FRONTEND_URL in Railway exactly matching your Vercel domain, including https.
+- Add VITE_API_URL in Vercel pointing to your Railway public domain.
+- If signup returns Prisma P2010 with server selection timeout, fix MongoDB Atlas network access:
+    - Whitelist Railway egress by allowing 0.0.0.0/0 in Atlas Network Access for testing, or set a strict allowlist if you have static IP.
+    - Confirm your Atlas user and password in DATABASE_URL are URL encoded.
+    - Use the Atlas SRV connection string with retryWrites=true and tls=true.
+
 
 ## License
 

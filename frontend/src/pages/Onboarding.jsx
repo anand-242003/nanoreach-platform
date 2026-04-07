@@ -12,6 +12,8 @@ import { getMe } from '@/store/authSlice';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 const industries = ['E-commerce', 'SaaS', 'FMCG', 'Education', 'Healthcare', 'Finance', 'Retail', 'Media'];
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -100,7 +102,11 @@ export default function Onboarding() {
   };
 
   const handleBrandChange = (e) => {
-    setBrandData({ ...brandData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const normalizedValue = (name === 'panNumber' || name === 'gstNumber')
+      ? value.toUpperCase().trimStart()
+      : value;
+    setBrandData({ ...brandData, [name]: normalizedValue });
   };
 
   const handleFileUpload = (e) => {
@@ -160,6 +166,20 @@ export default function Onboarding() {
         case 1:
           if (!brandData.companyName || !brandData.website || !brandData.industry) {
             setError('Please fill all required fields');
+            return false;
+          }
+          break;
+        case 2:
+          if (!brandData.gstNumber || !brandData.panNumber) {
+            setError('PAN and GST are required for brand accounts');
+            return false;
+          }
+          if (!PAN_REGEX.test(brandData.panNumber.trim().toUpperCase())) {
+            setError('Invalid PAN format. Example: ABCDE1234F');
+            return false;
+          }
+          if (!GST_REGEX.test(brandData.gstNumber.trim().toUpperCase())) {
+            setError('Invalid GST format. Example: 22ABCDE1234F1Z5');
             return false;
           }
           break;
@@ -238,8 +258,8 @@ export default function Onboarding() {
       docFormData.append('companyName', brandData.companyName);
       docFormData.append('website', brandData.website);
       docFormData.append('industry', brandData.industry);
-      if (brandData.gstNumber) docFormData.append('gstNumber', brandData.gstNumber);
-      if (brandData.panNumber) docFormData.append('panNumber', brandData.panNumber);
+      docFormData.append('gstNumber', brandData.gstNumber.trim().toUpperCase());
+      docFormData.append('panNumber', brandData.panNumber.trim().toUpperCase());
       docFormData.append('document', brandData.document);
 
       await axios.post(`${API_URL}/api/profile/brand`, docFormData, {
@@ -529,16 +549,16 @@ export default function Onboarding() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold mb-2">GST Number</label>
+                        <label className="block text-sm font-semibold mb-2">GST Number *</label>
                         <input type="text" name="gstNumber" value={brandData.gstNumber} onChange={handleBrandChange}
                           className="w-full border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="Optional" />
+                          placeholder="22ABCDE1234F1Z5" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold mb-2">PAN Number</label>
+                        <label className="block text-sm font-semibold mb-2">PAN Number *</label>
                         <input type="text" name="panNumber" value={brandData.panNumber} onChange={handleBrandChange}
                           className="w-full border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="Optional" />
+                          placeholder="ABCDE1234F" />
                       </div>
                     </div>
                   </motion.div>

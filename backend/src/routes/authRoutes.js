@@ -3,6 +3,7 @@ import { protect } from "../middlewares/authMiddleware.js";
 import { 
   signup, 
   login, 
+  googleOauth,
   logout, 
   getMe, 
   getVerificationStatus,
@@ -18,6 +19,8 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/oauth/google", googleOauth);
+router.post("/google", googleOauth);
 router.post("/logout", logout);
 
 router.post("/verify-email", verifyEmail);

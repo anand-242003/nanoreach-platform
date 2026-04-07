@@ -30,6 +30,8 @@ app.use(helmet({
     },
   },
   crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 const allowedOrigins = [
   ...(process.env.FRONTEND_URL || 'http://localhost:5173')

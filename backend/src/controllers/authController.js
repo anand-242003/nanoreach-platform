@@ -1,4 +1,6 @@
 import prisma from "../config/db.js";
+import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import { comparePassword, hashPassword } from "../utils/hash.js";
 import { generateToken } from "../utils/generateToken.js";
 import { isValidEmail, sanitizeString } from "../utils/validators.js";
@@ -11,6 +13,10 @@ import {
   sendPasswordResetEmail,
   sendWelcomeEmail
 } from "../utils/emailService.js";
+
+const googleClient = process.env.GOOGLE_CLIENT_ID
+  ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+  : null;
 
 const validatePassword = (password) => {
   const errors = [];
@@ -29,6 +35,48 @@ const getCookieOptions = () => {
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
+const isDatabaseUnavailableError = (error) => {
+  const prismaCode = error?.code;
+  const prismaMetaMessage = error?.meta?.message || "";
+  const plainMessage = error?.message || "";
+  const fullMessage = `${prismaMetaMessage} ${plainMessage}`.toLowerCase();
+
+  return (
+    prismaCode === "P1001" ||
+    prismaCode === "P2010" ||
+    fullMessage.includes("server selection timeout") ||
+    fullMessage.includes("no available servers") ||
+    fullMessage.includes("replicasetnoprimary")
+  );
+};
+
+const sendDatabaseUnavailableResponse = (res) => {
+  return res.status(503).json({
+    message: "Database is temporarily unavailable. Please try again in a minute.",
+    code: "DATABASE_UNAVAILABLE",
+  });
+};
+
+const buildAuthResponsePayload = (user) => {
+  const hasProfile = user.role === "INFLUENCER"
+    ? user.influencerProfile !== null
+    : user.brandProfile !== null;
+
+  return {
+    message: "Authentication successful",
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verificationStatus: user.verificationStatus,
+      emailVerified: user.emailVerified,
+      hasProfile,
+    },
+    redirectTo: !hasProfile ? "/onboarding" : "/dashboard",
   };
 };
 
@@ -118,6 +166,9 @@ export const signup = async (req, res) => {
 
     } catch (error) {
         console.error('[signup error]', error);
+        if (isDatabaseUnavailableError(error)) {
+          return sendDatabaseUnavailableResponse(res);
+        }
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -219,26 +270,89 @@ export const login = async (req, res) => {
 
         res.cookie("token", token, getCookieOptions());
 
-        const hasProfile = user.role === 'INFLUENCER' 
-            ? user.influencerProfile !== null 
-            : user.brandProfile !== null;
+        const payload = buildAuthResponsePayload(user);
+        payload.message = "Login successful";
+        res.json(payload);
 
-        res.json({
-            message: "Login successful",
-            user: { 
-                id: user.id,
-                name: user.name,
-                email: user.email, 
-                role: user.role,
-                verificationStatus: user.verificationStatus,
-                emailVerified: user.emailVerified,
-                hasProfile,
-            },
-            redirectTo: !hasProfile ? "/onboarding" : "/dashboard",
-        });
-
-    } catch (error) {res.status(500).json({ message: "Server error" });
+    } catch (error) {
+      if (isDatabaseUnavailableError(error)) {
+        return sendDatabaseUnavailableResponse(res);
+      }
+      res.status(500).json({ message: "Server error" });
     }
+};
+
+export const googleOauth = async (req, res) => {
+  try {
+    const { credential, role } = req.body;
+
+    if (!process.env.GOOGLE_CLIENT_ID || !googleClient) {
+      return res.status(500).json({
+        message: "Google OAuth is not configured on the server",
+      });
+    }
+
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload?.email?.toLowerCase();
+    const name = sanitizeString(payload?.name || "User", 100);
+
+    if (!email || !payload?.email_verified) {
+      return res.status(400).json({ message: "Google account email is not verified" });
+    }
+
+    const validRoles = ["BRAND", "INFLUENCER"];
+    const requestedRole = validRoles.includes(role) ? role : "INFLUENCER";
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        influencerProfile: true,
+        brandProfile: true,
+      },
+    });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const hashedPassword = await hashPassword(randomPassword);
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          role: requestedRole,
+          emailVerified: true,
+          verificationStatus: "PENDING",
+        },
+        include: {
+          influencerProfile: true,
+          brandProfile: true,
+        },
+      });
+    }
+
+    const token = generateToken(user.id, user.role);
+    res.cookie("token", token, getCookieOptions());
+
+    const response = buildAuthResponsePayload(user);
+    response.message = "Google authentication successful";
+
+    return res.json(response);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return sendDatabaseUnavailableResponse(res);
+    }
+    return res.status(401).json({ message: "Google authentication failed" });
+  }
 };
 
 export const logout = (_req, res) => {
