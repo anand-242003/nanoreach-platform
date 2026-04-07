@@ -82,47 +82,67 @@ const buildAuthResponsePayload = (user) => {
 
 export const signup = async (req, res) => {
     try {
+        console.log('[SIGNUP] Received signup request');
+        console.log('[SIGNUP] Request body keys:', Object.keys(req.body));
+        
         let { name, email, password, role } = req.body;
+        console.log('[SIGNUP] Extracted data - role:', role, 'email:', email, 'name:', name);
 
         name = sanitizeString(name, 100);
         email = email?.trim()?.toLowerCase();
+        console.log('[SIGNUP] After sanitization - name:', name, 'email:', email);
         
         if (!email || !password || !name) {
+            console.log('[SIGNUP] FAILED - Missing fields - email:', !!email, 'password:', !!password, 'name:', !!name);
             return res.status(400).json({ message: "All fields are required" });
         }
         
         if (name.length < 2 || name.length > 100) {
+            console.log('[SIGNUP] FAILED - Invalid name length:', name.length);
             return res.status(400).json({ message: "Name must be 2-100 characters" });
         }
         
         if (!isValidEmail(email)) {
+            console.log('[SIGNUP] FAILED - Invalid email format:', email);
             return res.status(400).json({ message: "Invalid email format" });
         }
+        console.log('[SIGNUP] Email format valid');
         
         const passwordErrors = validatePassword(password);
         if (passwordErrors.length > 0) {
+            console.log('[SIGNUP] FAILED - Password validation failed:', passwordErrors);
             return res.status(400).json({ 
                 message: `Password must contain: ${passwordErrors.join(', ')}`,
                 requirements: passwordErrors
             });
         }
+        console.log('[SIGNUP] Password validation passed');
 
         const validRoles = ["BRAND", "INFLUENCER"];
         const userRole = role && validRoles.includes(role) ? role : "INFLUENCER";
+        console.log('[SIGNUP] User role assigned:', userRole);
 
+        console.log('[SIGNUP] Checking if user exists with email:', email);
         const existingUser = await prisma.user.findUnique({
             where: { email },
         });
         if (existingUser) {
+            console.log('[SIGNUP] FAILED - User already exists:', email);
             return res.status(400).json({ message: "User already exists" });
         }
+        console.log('[SIGNUP] User does not exist, proceeding with creation');
 
+        console.log('[SIGNUP] Hashing password...');
         const hashedPassword = await hashPassword(password);
+        console.log('[SIGNUP] Password hashed successfully');
 
+        console.log('[SIGNUP] Generating verification token...');
         const verificationToken = generateVerificationToken();
         const hashedToken = hashToken(verificationToken);
-        const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+        const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        console.log('[SIGNUP] Verification token generated, expires:', tokenExpiry);
         
+        console.log('[SIGNUP] Creating user in database...');
         const user = await prisma.user.create({
             data: {
                 email,
@@ -135,9 +155,13 @@ export const signup = async (req, res) => {
                 emailVerificationExpiry: tokenExpiry,
             },
         });
+        console.log('[SIGNUP] User created successfully - ID:', user.id);
 
+        console.log('[SIGNUP] Sending verification email to:', email);
         await sendVerificationEmail(email, name, verificationToken);
+        console.log('[SIGNUP] Verification email sent');
 
+        console.log('[SIGNUP] Logging audit event...');
         await logAuditEvent({
             eventType: AuditEventType.USER_CREATED,
             userId: user.id,
@@ -146,10 +170,16 @@ export const signup = async (req, res) => {
             metadata: { role: userRole },
             ...extractRequestContext(req),
         });
+        console.log('[SIGNUP] Audit event logged');
         
+        console.log('[SIGNUP] Generating JWT token...');
         const token = generateToken(user.id, user.role);
+        console.log('[SIGNUP] JWT token generated');
 
         res.cookie("token", token, getCookieOptions());
+        console.log('[SIGNUP] Auth cookie set');
+        
+        console.log('[SIGNUP] SUCCESS - User:', user.id, 'Email:', email);
         return res.status(201).json({
             message: "User registered successfully. Please check your email to verify your account.",
             user: {
@@ -165,8 +195,15 @@ export const signup = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[signup error]', error);
+        console.error('[SIGNUP] ERROR:', {
+            message: error.message,
+            code: error.code,
+            prismaCode: error?.code,
+            meta: error?.meta,
+            stack: error.stack
+        });
         if (isDatabaseUnavailableError(error)) {
+          console.error('[SIGNUP] Database unavailable error detected');
           return sendDatabaseUnavailableResponse(res);
         }
         res.status(500).json({ message: "Server error" });
