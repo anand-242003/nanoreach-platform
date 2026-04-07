@@ -39,12 +39,17 @@ const allowedOrigins = [
     .map(u => u.trim()),
   'http://localhost:5174',
 ];
-const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9-]+-anands-projects-[a-z0-9]+\.vercel\.app$/;
+const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9-]+\.vercel\.app$/;
+const vercelProductionPattern = /^https:\/\/nanoreach\.vercel\.app$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
+    if (
+      allowedOrigins.includes(origin) ||
+      vercelPreviewPattern.test(origin) ||
+      vercelProductionPattern.test(origin)
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
