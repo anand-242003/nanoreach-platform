@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { CheckCircle, XCircle, User, Building2, ExternalLink, Loader2, Eye } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function VerificationQueue() {
   const { type } = useParams();
   const navigate = useNavigate();
@@ -25,9 +24,10 @@ export default function VerificationQueue() {
       const endpoint = isInfluencer 
         ? '/api/admin/verifications/influencers?status=UNDER_REVIEW'
         : '/api/admin/verifications/brands?status=UNDER_REVIEW';
-      const { data } = await axios.get(`${API_URL}${endpoint}`, { withCredentials: true });
+      const { data } = await axios.get(endpoint);
       setItems(isInfluencer ? (data.influencers || []) : (data.brands || []));
     } catch (error) {
+      alert(error.response?.data?.message || 'Failed to load pending verifications');
       setItems([]);
     } finally {
       setLoading(false);
@@ -40,7 +40,7 @@ export default function VerificationQueue() {
       const endpoint = isInfluencer 
         ? `/api/admin/verifications/influencers/${id}/approve`
         : `/api/admin/verifications/brands/${id}/approve`;
-      await axios.post(`${API_URL}${endpoint}`, { notes }, { withCredentials: true });
+      await axios.post(endpoint, { notes });
       setSelectedItem(null);
       setNotes('');
       fetchPending();
@@ -61,7 +61,7 @@ export default function VerificationQueue() {
       const endpoint = isInfluencer 
         ? `/api/admin/verifications/influencers/${id}/reject`
         : `/api/admin/verifications/brands/${id}/reject`;
-      await axios.post(`${API_URL}${endpoint}`, { notes }, { withCredentials: true });
+      await axios.post(endpoint, { notes });
       setSelectedItem(null);
       setNotes('');
       fetchPending();

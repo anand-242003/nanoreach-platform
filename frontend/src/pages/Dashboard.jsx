@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { 
   Users, DollarSign, Eye, Plus, ArrowRight,
   Clock, AlertCircle, Building2, Sparkles,
   Target, Award, FileText
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, verificationStatus } = useSelector((state) => state.auth);
@@ -34,9 +33,9 @@ export default function Dashboard() {
     try {
       if (isAdmin) {
         const [influencersRes, brandsRes, campaignsRes] = await Promise.all([
-          axios.get(`${API_URL}/api/admin/verifications/influencers?status=UNDER_REVIEW`, { withCredentials: true }).catch(() => ({ data: { influencers: [] } })),
-          axios.get(`${API_URL}/api/admin/verifications/brands?status=UNDER_REVIEW`, { withCredentials: true }).catch(() => ({ data: { brands: [] } })),
-          axios.get(`${API_URL}/api/campaigns?status=ACTIVE`, { withCredentials: true }).catch(() => ({ data: { campaigns: [] } })),
+          axios.get('/api/admin/verifications/influencers?status=UNDER_REVIEW').catch(() => ({ data: { influencers: [] } })),
+          axios.get('/api/admin/verifications/brands?status=UNDER_REVIEW').catch(() => ({ data: { brands: [] } })),
+          axios.get('/api/campaigns?status=ACTIVE').catch(() => ({ data: { campaigns: [] } })),
         ]);
         setStats({
           pendingInfluencers: influencersRes.data.influencers?.length || 0,
@@ -46,7 +45,7 @@ export default function Dashboard() {
         });
         setCampaigns(campaignsRes.data.campaigns || []);
       } else {
-        const campaignsRes = await axios.get(`${API_URL}/api/campaigns?status=ACTIVE`, { withCredentials: true }).catch(() => ({ data: { campaigns: [] } }));
+        const campaignsRes = await axios.get('/api/campaigns?status=ACTIVE').catch(() => ({ data: { campaigns: [] } }));
         setCampaigns(campaignsRes.data.campaigns || []);
       }
     } catch (error) {
