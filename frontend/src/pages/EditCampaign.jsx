@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import api from '@/lib/axios';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 export default function EditCampaign() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ export default function EditCampaign() {
 
   const fetchCampaign = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/campaigns/${id}`, { withCredentials: true });
+      const { data } = await api.get(`/api/campaigns/${id}`);
       const campaign = data.campaign || data;
       setFormData({
         title: campaign.title || '',
@@ -54,7 +53,7 @@ export default function EditCampaign() {
     setError('');
 
     try {
-      await axios.put(`${API_URL}/api/campaigns/${id}`, formData, { withCredentials: true });
+      await api.put(`/api/campaigns/${id}`, formData);
       navigate(`/campaigns/${id}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update campaign');

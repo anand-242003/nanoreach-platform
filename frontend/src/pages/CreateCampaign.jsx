@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle, Copy, Clock } from 'lucide-react';
+import api from '@/lib/axios';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 
 export default function CreateCampaign() {
@@ -47,14 +46,10 @@ export default function CreateCampaign() {
     setError('');
 
     try {
-      const { data: campaignData } = await axios.post(`${API_URL}/api/campaigns`, formData, { withCredentials: true });
+      const { data: campaignData } = await api.post('/api/campaigns', formData);
       setCampaign(campaignData.campaign);
 
-      const { data: escrowData } = await axios.post(
-        `${API_URL}/api/escrow/campaigns/${campaignData.campaign.id}/create`,
-        {},
-        { withCredentials: true }
-      );
+      const { data: escrowData } = await api.post(`/api/escrow/campaigns/${campaignData.campaign.id}/create`, {});
       setPaymentInfo(escrowData.paymentInstructions);
       setStep(2);
     } catch (err) {
@@ -69,11 +64,9 @@ export default function CreateCampaign() {
     setError('');
 
     try {
-      await axios.post(
-        `${API_URL}/api/escrow/campaigns/${campaign.id}/confirm-payment`,
-        { paymentReference: paymentInfo.reference },
-        { withCredentials: true }
-      );
+      await api.post(`/api/escrow/campaigns/${campaign.id}/confirm-payment`, {
+        paymentReference: paymentInfo.reference,
+      });
       navigate('/campaigns/my');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to confirm payment');
