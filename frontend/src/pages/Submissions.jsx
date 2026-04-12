@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FileText, Clock, CheckCircle, ExternalLink, Copy, Loader2 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 export default function Submissions() {
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);

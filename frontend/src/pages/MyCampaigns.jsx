@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { Loader2, DollarSign, Clock, Filter, Plus, Search, Target } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 export default function MyCampaigns() {
   const navigate = useNavigate();
   const { verificationStatus } = useSelector((state) => state.auth);

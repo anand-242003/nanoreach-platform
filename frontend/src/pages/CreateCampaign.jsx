@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle, Copy, Clock } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const categories = ['Tech', 'Gaming', 'Education', 'Lifestyle', 'Business', 'Entertainment', 'Health', 'Travel', 'Food', 'Fashion'];
 
 export default function CreateCampaign() {

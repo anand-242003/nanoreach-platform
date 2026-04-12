@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Search, Filter, Target, Calendar, DollarSign, ArrowRight } from 'lucide-react';
 import { CardStack } from '@/components/ui/card-stack';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 export default function Campaigns() {
   const navigate = useNavigate();
   const { verificationStatus } = useSelector((state) => state.auth);
