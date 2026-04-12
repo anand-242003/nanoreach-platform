@@ -123,6 +123,7 @@ model Campaign {
   startDate           DateTime
   endDate             DateTime
   budget              Float
+  websiteUrl          String?
   status              CampaignStatus     @default(DRAFT)
   categoryTags        String[]
   contentRequirements String?
