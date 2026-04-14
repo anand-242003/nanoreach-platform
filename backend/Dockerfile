@@ -17,7 +17,7 @@ COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY prisma ./prisma
 COPY src ./src
-COPY uploads ./uploads
+
 
 EXPOSE 3001
 
