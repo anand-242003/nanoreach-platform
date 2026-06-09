@@ -36,13 +36,19 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
 
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://nanoreach.vercel.app'
+    ];
+
     const normalizedOrigin = origin.replace(/\/$/, "");
 
     if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
 
-    return callback(new Error('Not allowed by CORS'));
+    // ❗ IMPORTANT FIX: do NOT throw error
+    return callback(null, false);
   },
   credentials: true,
 }));
