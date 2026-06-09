@@ -26,33 +26,27 @@ app.use(helmet({
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
-  .split(',')
-  .map(u => u.trim())
-  .filter(Boolean)
-  .map((u) => u.replace(/\/$/, ""));
-const vercelPreviewPattern = /^https:\/\/nanoreach-[a-z0-9-]+\.vercel\.app$/;
-const vercelProductionPattern = /^https:\/\/nanoreach\.vercel\.app$/;
 
-if (process.env.VERCEL_URL) {
-  allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
-}
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://nanoreach.vercel.app'
+];
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
+
     const normalizedOrigin = origin.replace(/\/$/, "");
-    if (
-      allowedOrigins.includes(normalizedOrigin) ||
-      vercelPreviewPattern.test(normalizedOrigin) ||
-      vercelProductionPattern.test(normalizedOrigin)
-    ) {
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
-    callback(new Error('Not allowed by CORS'));
+
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));
+
 app.set("trust proxy", 1);
 
 app.use(rateLimit({
@@ -94,11 +88,14 @@ const requiredEnvVars = [
   'AWS_SECRET_ACCESS_KEY',
   'AWS_BUCKET_NAME',
 ];
+
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
 if (missingEnvVars.length > 0) {
   console.error('Missing required environment variables:', missingEnvVars.join(', '));
   process.exit(1);
 }
+
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
   console.warn('JWT_SECRET should be at least 32 characters long');
 }
@@ -118,4 +115,3 @@ const startServer = async () => {
 };
 
 startServer();
-
